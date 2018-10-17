@@ -22,14 +22,15 @@ class CellContainer:
     def get_cells(self):
         return self.container
 
-    def initialize_cell(self, cell):
-        # TODO: initialize one cell
+    @staticmethod
+    def initialize_cell(cell):
+        # TODO: initialize one cell. Реализуй функцию для подсчета капиллярного давления
         for state in cell.get_cell_states():
             state.set_s_water(Layer.s_water_init * np.ones((Layer.dim, 1)))
             state.set_s_oil((1.0 - Layer.s_water_init) * np.ones((Layer.dim, 1)))
             state.set_pressure_oil(Layer.pressure_oil_init * np.ones(Layer.dim, 1))
-            state.set_pressure_cap()
-            state.set_pressure_water()
+            state.set_pressure_cap(Layer.count_pressure_cap(state.get_s_water()))
+            state.set_pressure_water(state.get_pressure_oil() - state.get_pressure_cap())
 
     def initialize_cells(self):
         for k in range(Layer.N_z):

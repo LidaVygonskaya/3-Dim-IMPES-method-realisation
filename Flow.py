@@ -1,6 +1,7 @@
 import numpy as np
-from .Layer import Layer
 
+from .Layer import Layer
+from .Cell import Cell
 
 class Flow:
     def __init__(self, left_cell, right_cell):
@@ -10,9 +11,15 @@ class Flow:
 
     @staticmethod
     def initialize_flow_array():
-        # TODO: создать массив потоков. Он должен быть размером N_x-1 * N_y-1 * N_z-1
+        #Исправьразмерности спроси чокавоуЯна
+        # TODO: создать массив потоков. Он должен быть размером N_x-1 * N_y-1 * N_z-1!!!!!!!!!!!!!!!!!!
         # TODO: Когда будешь пропихивать ему две клетки посмотри индексы. Просто афигеть как важно
-        pass
+        flow_array = np.zeros((Layer.N_z, Layer.N_x, Layer.N_z), dtype=Cell)
+        for k in range(Layer.N_z):
+            for i in range(Layer.N_x):
+                for j in range(Layer.N_y):
+                    flow_array[k, i, j] = Flow()
+        return flow_array
 
     def get_right_cell(self):
         return self.right_cell
