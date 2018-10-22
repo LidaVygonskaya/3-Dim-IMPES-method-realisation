@@ -41,42 +41,59 @@ class ThreeDimOilWaterImpes:
                     fi = Layer.count_fi(cell_state_n_plus.get_pressure_oil())
                     cell_state_n_plus.set_fi(fi)
 
-    def count_flows(self, flows):
+    @staticmethod
+    def count_flows(flows):
         for k in range(Layer.N_z - 1):
             for i in range(Layer.N_x - 1):
                 for j in range(Layer.N_z - 1):
                     flow = flows[k, i, j]
-                    flow.count_flows()
+                    flow.count_flow()
 
     # TODO: реализовать функции подсчета коэффициентов
     def count_a(self):
         pass
 
-    def count_b(self):
-        pass
+    def count_b(self, flow):
+        # TODO: передаем ему на вход поток
+        A = 1
+        b = A * flow.get_water_flow('x') + flow.get_oil_flow('x')
+        return b
 
-    def count_c(self):
-        pass
+    def count_c(self, flow):
+        A = 1
+        c = A * flow.get_water_flow('x') + flow.get_oil_flow('x')
+        return c
 
-    def count_d(self):
-        pass
+    def count_d(self, flow):
+        A = 1
+        d = A * flow.get_water_flow('y') + flow.get_oil_flow('y')
+        return d
 
-    def count_e(self):
-        pass
+    def count_e(self, flow):
+        A = 1
+        e = A * flow.get_water_flow('y') + flow.get_oil_flow('y')
+        return e
 
-    def count_f(self):
-        pass
+    def count_f(self, flow):
+        A = 1
+        f = A * flow.get_water_flow('z') + flow.get_oil_flow('z')
+        return f
 
-    def count_g(self):
-        pass
-
-    def count_h(self):
-        pass
-
+    def count_g(self, flow):
+        A = 1
+        g = A * flow.get_water_flow('z') + flow.get_oil_flow('z')
+        return g
 
 
-    def generate_matrix(self):
+    def generate_matrix(self, flow_array, cell_container, solver_slau):
         # TODO: Собственно сгенерировать всю матрицу. Ну которая семидиагональная ага да
+        for flow in flow_array:
+            self.count_b(flow)
+            self.count_c(flow)
+            self.count_d(flow)
+            self.count_e(flow)
+            self.count_g(flow)
+            self.count_f(flow)
         pass
 
     def solve_slau(self):
