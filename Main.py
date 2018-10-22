@@ -8,15 +8,16 @@ impes = ThreeDimOilWaterImpes()
 # TODO: запихать сюда еще и решателя (а может не надо???)
 
 cell_container = CellContainer()  # Проверь на счет eq_index. Внутри реализации написано чо каво
-cell_container.initialize_cells()  # Дописать функцию рассчета для капиллярного давления
+cell_container.initialize_cells()
 
-flows = Flow.initialize_flow_array()
+flows = Flow.initialize_flow_array(cell_container)
 
 time = impes.tau  # Сразу обозначим это как первый шаг по времени, потому что нулевой у нас есть
 
 
 # TODO: А вот здесь добавь шаг по времени. Пока посчитаем только для одного
-delta_k = impes.generate_delta_k()  # Генерируем начальное приближение (Я больше не лист я куб нах). Куб с элементами 3х1
+# TODO: очень странно. Подумать над разделением переменных. Может преобразовать каждое давление к матрице
+delta_k = impes.generate_delta_k()  # Генерируем начальное приближение (Я больше не лист я куб нах)
 cell_container.equate_cell_states()  # State_n = State_n_plus
 
 while impes.check_norm(delta_k):

@@ -10,15 +10,18 @@ class Flow:
         self.t_oil_water = np.zeros((3, 2))
 
     @staticmethod
-    def initialize_flow_array():
+    def initialize_flow_array(cell_container):
         #Исправьразмерности спроси чокавоуЯна
         # TODO: создать массив потоков. Он должен быть размером N_x-1 * N_y-1 * N_z-1!!!!!!!!!!!!!!!!!!
         # TODO: Когда будешь пропихивать ему две клетки посмотри индексы. Просто афигеть как важно
-        flow_array = np.zeros((Layer.N_z, Layer.N_x, Layer.N_z), dtype=Cell)
+        # TODO: Еще при этом теперь не просто соединяет клетку слева. А теперь смотреть еще и по всем осям
+        flow_array = np.zeros((Layer.N_z - 1, Layer.N_x - 1, Layer.N_z - 1), dtype=Cell)
         for k in range(Layer.N_z):
             for i in range(Layer.N_x):
                 for j in range(Layer.N_y):
-                    flow_array[k, i, j] = Flow()
+                    left_cell = cell_container.get_cell(k, i, j)
+                    right_cell = cell_container.get_cell(k, i, j + 1)
+                    flow_array[k, i, j] = Flow(left_cell, right_cell)
         return flow_array
 
     def get_right_cell(self):

@@ -12,6 +12,7 @@ class CellContainer:
             for i in range(Layer.N_x):
                 for j in range(Layer.N_y):
                     # TODO: Проверить действительно ли надо использовать такой номер уравнения
+                    # TODO: только в местах где потоки выходят из куба нулевая проводимость. Надо их как то выделить
                     # Проверяем является ли клетка граничной, если да, то ставим, что она граничная
                     if (k == 0 or k == Layer.N_z) or(i == 0 or i == Layer.N_x) or (j == 0 or j == Layer.N_y):
                         self.container[k, i, j] = Cell(eq_index, True)
@@ -22,15 +23,17 @@ class CellContainer:
     def get_cells(self):
         return self.container
 
+    def get_cell(self, k, i, j):
+        return self.container[i, j, k]
+
     @staticmethod
     def initialize_cell(cell):
-        # TODO: initialize one cell. Реализуй функцию для подсчета капиллярного давления
         for state in cell.get_cell_states():
-            state.set_s_water(Layer.s_water_init * np.ones((Layer.dim, 1)))
-            state.set_s_oil((1.0 - Layer.s_water_init) * np.ones((Layer.dim, 1)))
-            state.set_pressure_oil(Layer.pressure_oil_init * np.ones(Layer.dim, 1))
+            state.set_s_water(Layer.s_water_init * np.ones((1, Layer.components_count)))
+            state.set_s_oil((1.0 - Layer.s_water_init) * np.ones((1, Layer.components_count)))
+            state.set_pressure_oil(Layer.pressure_oil_init * np.ones(1, Layer.components_count))
             state.set_pressure_cap(Layer.count_pressure_cap(state.get_s_water()))
-            state.set_pressure_water(state.get_pressure_oil() - state.get_pressure_cap())
+            state.set_pressure_water(state.get_pressure_oil() - state.get_pressure_cap())  # Отнимается от каждого элемента матрицы
 
     def initialize_cells(self):
         for k in range(Layer.N_z):

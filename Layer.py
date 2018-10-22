@@ -1,5 +1,8 @@
 import numpy as np
 
+from Oil import Oil
+from Water import Water
+
 
 class Layer:
     atm = 101325.0
@@ -19,6 +22,14 @@ class Layer:
     pressure_oil_init = 200 * atm  # Начальное давление нефти
     pressure_water_init = 200 * atm  # Начальное давление воды. Вычисляется через капилярку, но пусть будет на всякий
 
+    fi_0 = 0.2
+    c_r = (10.0 ** (-5)) / atm
+
+    P_01 = 80 * atm
+    P_02 = 80 * atm
+
+    components = [Oil(), Water()]
+
     @staticmethod
     def count_pressure_cap(s_water):
         # TODO: Организовать подачу вектора на вход. Нельзя забывать что теперь это уже не скаляр
@@ -36,7 +47,10 @@ class Layer:
                                                                     - pressure_cap_graph.get(s_w_graph[i - 1])) \
                                                                     / (s_w_graph[i] - s_w_graph[i - 1]) \
                                                                     * (s_water - s_w_graph[i - 1])
-
                 # p_cap = 0
                 break
         return p_cap
+
+    @classmethod
+    def count_fi(cls,pressure_oil):
+        return cls.fi_0 * (1.0 + cls.c_r * (pressure_oil - cls.P_01))
