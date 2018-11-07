@@ -6,15 +6,15 @@ from Water import Water
 
 class Layer:
     atm = 101325.0
-    p_cap_filename = 'govno.txt'
+    p_cap_filename = 'Pcap(Sw).txt'
 
     components_count = 2  # Количество компонент
     dim = 3  # Размерность пространства
 
     # Количество ячеек
-    N_x = 100
-    N_y = 100
-    N_z = 100
+    N_x = 10
+    N_y = 10
+    N_z = 10
 
     s_water_init = 0.5  # Начальная насыщенность воды
     s_oil_init = 0.5  # Начальная насыщенность нефти. Вычисляем через воду конечно, но пусть будет на всякий
@@ -25,8 +25,8 @@ class Layer:
     fi_0 = 0.2
     c_r = (10.0 ** (-5)) / atm
 
-    P_01 = 80 * atm
-    P_02 = 80 * atm
+    P_01 = Water.P_01
+    P_02 = Oil.P_02
 
     components = [Oil(), Water()]
 

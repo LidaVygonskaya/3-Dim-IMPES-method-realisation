@@ -1,7 +1,7 @@
 import numpy as np
 
-from .Layer import Layer
-from .Cell import Cell
+from Layer import Layer
+from Cell import Cell
 
 
 class CellContainer:
@@ -14,7 +14,7 @@ class CellContainer:
                     # TODO: Проверить действительно ли надо использовать такой номер уравнения
                     # TODO: только в местах где потоки выходят из куба нулевая проводимость. Надо их как то выделить
                     # Проверяем является ли клетка граничной, если да, то ставим, что она граничная
-                    if (k == 0 or k == Layer.N_z) or(i == 0 or i == Layer.N_x) or (j == 0 or j == Layer.N_y):
+                    if (k == 0 or k == Layer.N_z - 1) or(i == 0 or i == Layer.N_x - 1) or (j == 0 or j == Layer.N_y - 1):
                         self.container[k, i, j] = Cell(eq_index, True)
                     else:
                         self.container[k, i, j] = Cell(eq_index)
@@ -24,16 +24,23 @@ class CellContainer:
         return self.container
 
     def get_cell(self, k, i, j):
-        return self.container[i, j, k]
+        return self.container[k, i, j]
 
     @staticmethod
     def initialize_cell(cell):
         for state in cell.get_cell_states():
-            state.set_s_water(Layer.s_water_init * np.ones((1, Layer.components_count)))
-            state.set_s_oil((1.0 - Layer.s_water_init) * np.ones((1, Layer.components_count)))
-            state.set_pressure_oil(Layer.pressure_oil_init * np.ones(1, Layer.components_count))
+            state.set_s_water(Layer.s_water_init)
+            state.set_s_oil(1.0 - Layer.s_water_init)
+            state.set_pressure_oil(Layer.pressure_oil_init)
             state.set_pressure_cap(Layer.count_pressure_cap(state.get_s_water()))
             state.set_pressure_water(state.get_pressure_oil() - state.get_pressure_cap())  # Отнимается от каждого элемента матрицы
+
+            for i in range(Layer.components_count):
+                component = Layer.components[i]
+                component_saturation = state.get_components_saturation()[i]
+                component_pressure = state.get_components_pressure()[i]
+                state.set_k_r(component.count_k_r(component_saturation), i)
+                state.set_ro(component.count_ro(component_pressure), i)
 
     def initialize_cells(self):
         for k in range(Layer.N_z):

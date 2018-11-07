@@ -10,3 +10,8 @@ class Dim(Enum):
     i = 0
     j = 1
     k = 2
+
+
+class FlowCell(Enum):
+    left_cell = 'left_cell'
+    right_cell = 'right_cell'

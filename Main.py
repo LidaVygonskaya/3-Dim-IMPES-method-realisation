@@ -1,11 +1,12 @@
 import numpy as np
 
-from .ThreeDimOilWaterImpes import ThreeDimOilWaterImpes
-from .CellContainer import CellContainer
-from .Flow import Flow
+from ThreeDimOilWaterImpes import ThreeDimOilWaterImpes
+from CellContainer import CellContainer
+from Flow import Flow
+from SolverSlau import SolverSlau
 
-impes = ThreeDimOilWaterImpes()
-# TODO: запихать сюда еще и решателя (а может не надо???)
+solverSlau = SolverSlau()
+impes = ThreeDimOilWaterImpes(solverSlau)
 
 cell_container = CellContainer()  # Проверь на счет eq_index. Внутри реализации написано чо каво
 cell_container.initialize_cells()
@@ -16,13 +17,14 @@ time = impes.tau  # Сразу обозначим это как первый ш�
 
 
 # TODO: А вот здесь добавь шаг по времени. Пока посчитаем только для одного
-# TODO: очень странно. Подумать над разделением переменных. Может преобразовать каждое давление к матрице
 delta_k = impes.generate_delta_k()  # Генерируем начальное приближение (Я больше не лист я куб нах)
 cell_container.equate_cell_states()  # State_n = State_n_plus
 
 while impes.check_norm(delta_k):
     # solver.set_zero()
     impes.recount_properties(cell_container)
+
+    # TODO: Flow get max pressure cell. Там сейчас что-то не очень
     impes.count_flows(flows)
     impes.generate_matrix()
 

@@ -1,4 +1,4 @@
-from .CellState import CellState
+from CellState import CellState
 
 
 class Cell:
@@ -6,6 +6,13 @@ class Cell:
         self.is_boundary = is_boundary
         self.cell_states = [CellState(), CellState()]#n, n + 1 layers
         self.eq_index = eq_index
+
+    def is_boundary_cell(self):
+        """
+        Проверяет является ли клетка граничной
+        :return: True - если клетка граничная. False - если нет
+        """
+        return self.is_boundary
 
     # TODO: rewrite all functions
     #Cell constant parameters
