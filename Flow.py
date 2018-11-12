@@ -15,35 +15,47 @@ class Flow:
     def initialize_flow_array(cell_container):
         """
         Инициализирует потоки. Проставляет им левые и правые ячейки. В случае граничных ячеек потоки равен нулю.
-        В случае граничных ячеек пока что у потока стоит правая клетка равная левой клетке
+        В случае граничных ячеек пока что у потока стоит правая клетка равная левой клетке.
+        Размер матрицы потоков на один меньше с каждой стороны чем основного массива
         :param cell_container: контрейнер с клетками. Объект класса CellContainer
         :return: массив потоков. Массив объектов типа Flow
         """
-        flow_array = np.zeros((Layer.N_z, Layer.N_x, Layer.N_y), dtype=Flow)
-        for k in range(Layer.N_z):
-            for i in range(Layer.N_x):
-                for j in range(Layer.N_y):
+        flow_array = np.zeros((Layer.N_z - 1, Layer.N_x - 1, Layer.N_y - 1), dtype=Flow)
+        for k in range(Layer.N_z - 1):
+            for i in range(Layer.N_x - 1):
+                for j in range(Layer.N_y - 1):
                     cell = cell_container.get_cell(k, i, j)
-                    if cell.is_boundary_cell():
-                        flow_array[k, i, j] = Flow(cell, cell)
-                    else:
-                        left_cell = np.array([cell_container.get_cell(k, i, j),
-                                              cell_container.get_cell(k, i, j),
-                                              cell_container.get_cell(k, i, j)])
+                    #if cell.is_boundary_cell():
+                        #flow_array[k, i, j] = Flow(cell, cell)
+                    #else:
+                    left_cell = np.array([cell_container.get_cell(k, i, j),
+                                          cell_container.get_cell(k, i, j),
+                                          cell_container.get_cell(k, i, j)])
 
-                        right_cell = np.array([cell_container.get_cell(k, i + 1, j),
-                                              cell_container.get_cell(k, i, j + 1),
-                                              cell_container.get_cell(k + 1, i, j)])
+                    right_cell = np.array([cell_container.get_cell(k, i + 1, j),
+                                          cell_container.get_cell(k, i, j + 1),
+                                          cell_container.get_cell(k + 1, i, j)])
 
-                        flow_array[k, i, j] = Flow(left_cell, right_cell)
+                    flow_array[k, i, j] = Flow(left_cell, right_cell)
 
         return flow_array
 
-    def get_max_pressure_cell(self, index):
-        # TODO: получить клетку вверх по потоку
-        pass
+    def get_max_pressure_cell(self, dimIndex, componentIndex):
+        # index берется для компонент
+        cell_1_pressure = self.left_cell[dimIndex, 0].get_cell_state_n_plus().get_components_pressure()
+        cell_2_pressure = self.left_cell[dimIndex, 1].get_cell_state_n_plus().get_components_pressure()
+        if cell_1_pressure[componentIndex] >= cell_2_pressure[componentIndex]:
+            return self.left_cell
+        else:
+            return self.right_cell
 
     def count_flow(self):
+        for i in range(Layer.dim):
+            for j in range(Layer.components_count):
+                cell = self.get_max_pressure_cell(i, j)
+                cell_state_n_plus = cell.get_cell_state_n_plus()
+                t_ = (cell.get_k())
+
         # TODO: поссчитать один поток
         for i in range(Layer.components_count):
             cell = self.get_max_pressure_cell(i)

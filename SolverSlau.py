@@ -10,7 +10,7 @@ class SolverSlau:
         self.N_z = Layer.N_z
         self.dim = Layer.N_x * Layer.N_y * Layer.N_z
 
-        #self.coefficient_matrix = np.array((self.dim, self.dim))
+        self.coefficient_matrix = np.array((self.dim, self.dim))
         #self.coefficient_matrix = bsr_matrix((self.dim, self.dim))
         # TODO: sparse diags посмотри пример придется все переделывать
         self.nevyaz_vector = np.zeros(self.dim)

@@ -28,6 +28,8 @@ class Layer:
     P_01 = Water.P_01
     P_02 = Oil.P_02
 
+    k = (9.868233 * (10 ** (-13))) * 10 ** (-3)
+
     components = [Oil(), Water()]
 
     @staticmethod
