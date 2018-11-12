@@ -63,10 +63,10 @@ class ThreeDimOilWaterImpes:
         b = A * flow.get_water_flow('x') + flow.get_oil_flow('x')
 
         # TODO: Реализовать функции get_eq_index()
-        self.solver_slau.set_matrix_coefficients(
-            left_cell.get_eq_index() + self.solver_slau.get_shift_N_xy(),
-            right_cell.get_eq_index()
-        )
+       # self.solver_slau.set_matrix_coefficients(
+       #     left_cell.get_eq_index() + self.solver_slau.get_shift_N_xy(),
+       #     right_cell.get_eq_index()
+       # )
         return b
 
     def count_c(self, flow):
@@ -133,13 +133,34 @@ class ThreeDimOilWaterImpes:
 
     def generate_matrix(self, flow_array, cell_container, solver_slau):
         # TODO: Собственно сгенерировать всю матрицу. Ну которая семидиагональная ага да
-        for flow in flow_array:
-            self.count_b(flow)
-            self.count_c(flow)
-            self.count_d(flow)
-            self.count_e(flow)
-            self.count_g(flow)
-            self.count_f(flow)
+        # TODO: Посчитать кожффициент a
+        matrix_size = Layer.N_x * Layer.N_y * Layer.N_z
+        #a = np.empty((0, matrix_size))
+        b = np.empty((0, matrix_size))
+        c = np.empty((0, matrix_size))
+        d = np.empty((0, matrix_size))
+        e = np.empty((0, matrix_size))
+        f = np.empty((0, matrix_size))
+        g = np.empty((0, matrix_size))
+        for k in range(Layer.N_z - 1):
+            for i in range(Layer.N_x - 1):
+                for j in range(Layer.N_y - 1):
+                    flow = flow_array[k, i, j]
+                    b = np.append(self.count_b(flow), b)  # Откусываем большой сдвиг с конца
+                    c = np.append(self.count_c(flow), c)  # Откусываем большой сдвиг с начала
+                    d = np.append(self.count_d(flow), d)  # Откусываем малый сдвиг с конца
+                    e = np.append(self.count_e(flow), e)  # Откусываем малый сдвиг с начала
+                    f = np.append(self.count_g(flow), f)  # Остается неизменным
+                    g = np.append(self.count_f(flow), g)  # Остается неизменным
+
+        # TODO: откусить
+        shift_Nx = solver_slau.get_shift_N_x()
+        shift_Nxy = solver_slau.get_shift_N_xy()
+        b = b[:-shift_Nxy]
+        c = c[]
+
+
+
 
     def solve_slau(self):
         # TODO: Реши систему. Тащемта можешь использовать стандартный решатель
