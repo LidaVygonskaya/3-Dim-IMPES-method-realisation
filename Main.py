@@ -21,12 +21,9 @@ delta_k = impes.generate_delta_k()  # Генерируем начальное п
 cell_container.equate_cell_states()  # State_n = State_n_plus
 
 while impes.check_norm(delta_k):
-    # solver.set_zero()
     impes.recount_properties(cell_container)
-
-    # TODO: Flow get max pressure cell. Там сейчас что-то не очень
     impes.count_flows(flows)
-    impes.generate_matrix()
+    impes.generate_matrix(flows, cell_container, solverSlau)
 
     impes.solve_slau()
     #delta_k = solver_slau.get_result() Не знаю, Лидос, нужны ли тебе эти строчки, смотри сама

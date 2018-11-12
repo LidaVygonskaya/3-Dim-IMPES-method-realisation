@@ -1,4 +1,5 @@
 from CellState import CellState
+from Layer import Layer
 
 
 class Cell:
@@ -20,7 +21,7 @@ class Cell:
         return self.eq_index
 
     def get_k(self):
-        return self.layer.k
+        return Layer.k
 
     def get_c_f_water(self):
         return self.layer.c_f_water
@@ -35,7 +36,7 @@ class Cell:
         return self.layer.mu_water
 
     def get_mu_oil_water(self):
-        return self.layer.mu_oil_water
+        return Layer.mu_oil_water
 
     def get_cell_state_n(self):
         return self.cell_states[0]

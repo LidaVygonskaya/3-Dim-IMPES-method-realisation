@@ -25,12 +25,9 @@ class Flow:
             for i in range(Layer.N_x - 1):
                 for j in range(Layer.N_y - 1):
                     cell = cell_container.get_cell(k, i, j)
-                    #if cell.is_boundary_cell():
-                        #flow_array[k, i, j] = Flow(cell, cell)
-                    #else:
-                    left_cell = np.array([cell_container.get_cell(k, i, j),
-                                          cell_container.get_cell(k, i, j),
-                                          cell_container.get_cell(k, i, j)])
+                    left_cell = np.array([cell,
+                                          cell,
+                                          cell])
 
                     right_cell = np.array([cell_container.get_cell(k, i + 1, j),
                                           cell_container.get_cell(k, i, j + 1),
@@ -41,28 +38,26 @@ class Flow:
         return flow_array
 
     def get_max_pressure_cell(self, dimIndex, componentIndex):
-        # index берется для компонент
-        cell_1_pressure = self.left_cell[dimIndex, 0].get_cell_state_n_plus().get_components_pressure()
-        cell_2_pressure = self.left_cell[dimIndex, 1].get_cell_state_n_plus().get_components_pressure()
-        if cell_1_pressure[componentIndex] >= cell_2_pressure[componentIndex]:
-            return self.left_cell
+        left_cell_pressure = self.left_cell[dimIndex].get_cell_state_n_plus().get_components_pressure()
+        right_cell_pressure = self.left_cell[dimIndex].get_cell_state_n_plus().get_components_pressure()
+        if left_cell_pressure[componentIndex] >= right_cell_pressure[componentIndex]:
+            return self.left_cell[dimIndex]
         else:
             return self.right_cell
 
-    def count_flow(self):
-        for i in range(Layer.dim):
-            for j in range(Layer.components_count):
-                cell = self.get_max_pressure_cell(i, j)
-                cell_state_n_plus = cell.get_cell_state_n_plus()
-                t_ = (cell.get_k())
 
-        # TODO: поссчитать один поток
-        for i in range(Layer.components_count):
-            cell = self.get_max_pressure_cell(i)
-            cell_state_n_plus = cell.get_cell_state_n_plus()
-            t_component = (cell.get_k() * cell_state_n_plus.get_components_k_r()[i] / cell.get_mu_oil_water()[i]) \
-                  * (1 / cell.layer.h) ** 2.0 * cell_state_n_plus.get_components_ro()[i]
-            self.t_oil_water[:, i] = t_component
+    def count_flow(self):
+        for componentIndex in range(Layer.components_count):
+            t_component_table = np.zeros(Layer.dim)  # Столбец размером Layer.dim. Будем заполнять матрицу по столбцам для каждой компоненты
+            for dimIndex in range(Layer.dim):
+                cell = self.get_max_pressure_cell(dimIndex, componentIndex)
+                cell_state_n_plus = cell.get_cell_state_n_plus()
+                # TODO: По сути k - это вектор, поэтому нужно будет что-то с ним сделать
+                t_component_element = (cell.get_k() * cell_state_n_plus.get_components_k_r()[componentIndex] /
+                                       cell.get_mu_oil_water()[componentIndex]) * (1 / Layer.h) ** 2.0 * \
+                                       cell_state_n_plus.get_components_ro()[componentIndex]
+                t_component_table[dimIndex] = t_component_element
+            self.t_oil_water[:, componentIndex] = t_component_table
 
     def get_water_flow_vector(self):
         return self.t_oil_water[:, Components.WATER.value]
