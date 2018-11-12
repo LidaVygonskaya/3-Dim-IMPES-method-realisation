@@ -10,8 +10,8 @@ class SolverSlau:
         self.N_z = Layer.N_z
         self.dim = Layer.N_x * Layer.N_y * Layer.N_z
 
-        self.coefficient_matrix = np.array((self.dim, self.dim))
-        #self.coefficient_matrix = bsr_matrix((self.dim, self.dim))
+        #self.coefficient_matrix = np.array((self.dim, self.dim))
+        self.coefficient_matrix = bsr_matrix((self.dim, self.dim))
         # TODO: sparse diags посмотри пример придется все переделывать
         self.nevyaz_vector = np.zeros(self.dim)
         self.result_vector = []
@@ -34,6 +34,10 @@ class SolverSlau:
 
     def get_shift_N_xy(self):
         return self.N_x * self.N_y
+
+    def add_diagonal_to_matrix(self, diagonal, shift):
+        # TODO: Сделать добавление одной диагонали к матрице. А может стоит конструировать матрицу сразу, никому неизветсно)
+        pass
 
     def set_matrix_coefficients(self, i, j, coefficient):
         if self.dim > i >= 0:

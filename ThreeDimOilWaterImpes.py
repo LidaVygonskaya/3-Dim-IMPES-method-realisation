@@ -156,8 +156,10 @@ class ThreeDimOilWaterImpes:
         # TODO: откусить
         shift_Nx = solver_slau.get_shift_N_x()
         shift_Nxy = solver_slau.get_shift_N_xy()
-        b = b[:-shift_Nxy]
-        #c = c[]
+        b = b[:-shift_Nxy]  # Откусываем большой сдвиг с конца
+        c = c[shift_Nxy:]  # Откусываем большой сдвиг с начала
+        d = d[:-shift_Nx]  # Откусываем малый сдвиг с конца
+        e = e[shift_Nx:]  # Откусываем малый сдвиг с начал
 
 
 
