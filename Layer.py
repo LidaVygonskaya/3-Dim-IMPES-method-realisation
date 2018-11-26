@@ -39,8 +39,9 @@ class Layer:
     mu_oil = 10.0 * (10.0 ** (-3))
     mu_water = 10.0 ** (-3)
     mu_oil_water = [mu_oil, mu_water]
-
-    components = [Oil(), Water()]
+    oil = Oil()
+    water = Water()
+    components = [oil, water]
 
     @staticmethod
     def count_pressure_cap(s_water):

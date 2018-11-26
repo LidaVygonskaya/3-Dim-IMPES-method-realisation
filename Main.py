@@ -23,7 +23,7 @@ cell_container.equate_cell_states()  # State_n = State_n_plus
 while impes.check_norm(delta_k):
     impes.recount_properties(cell_container)
     impes.count_flows(flows)
-    impes.generate_matrix(flows, cell_container, solverSlau)
+    impes.generate_matrix(flows, cell_container)
 
     impes.solve_slau()
     #delta_k = solver_slau.get_result() Не знаю, Лидос, нужны ли тебе эти строчки, смотри сама

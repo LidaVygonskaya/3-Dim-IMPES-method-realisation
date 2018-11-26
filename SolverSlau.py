@@ -12,8 +12,6 @@ class SolverSlau:
         self.coefficient_matrix = None
         self.nevyaz_vector = np.zeros((self.dim, 0))
 
-
-        #self.coefficient_matrix = np.array((self.dim, self.dim))
         self.coefficient_matrix = bsr_matrix((self.dim, self.dim))
         # TODO: sparse diags посмотри пример придется все переделывать
         self.nevyaz_vector = np.zeros(self.dim)
@@ -29,6 +27,9 @@ class SolverSlau:
         self.coefficient_matrix = np.zeros((self.dim, self.dim))
         self.nevyaz_vector = np.zeros(self.dim)
 
+    def add_vector_to_nevyaz(self, vector):
+        self.nevyaz_vector += vector
+
     def add_nevyaz(self, i, coefficient):
         self.nevyaz_vector[i] += coefficient
 
@@ -38,10 +39,6 @@ class SolverSlau:
     def get_shift_N_xy(self):
         return self.N_x * self.N_y
 
-    def add_diagonal_to_matrix(self, diagonal, shift):
-        # TODO: Сделать добавление одной диагонали к матрице. А может стоит конструировать матрицу сразу, никому неизветсно)
-        pass
-
     def set_matrix_coefficients(self, i, j, coefficient):
         if self.dim > i >= 0:
             self.add_coefficient(i, i, coefficient)  # Добавляем этот же коэффициент на место a
@@ -49,5 +46,12 @@ class SolverSlau:
             # TODO: смотри аналогичное добавление этого в предыдущем коде
             if self.dim > j >= 0:
                 self.add_coefficient(i, j, coefficient)  # Добавляем коэффициент в матрицу
+
+    def get_result(self):
+        return self.result_vector
+
+    def solve_slau(self):
+        # TODO: добавить стандартный решатель
+        pass
 
 
