@@ -10,7 +10,7 @@ class SolverSlau:
         self.N_z = Layer.N_z
         self.dim = Layer.N_x * Layer.N_y * Layer.N_z
         self.coefficient_matrix = None
-        self.nevyaz_vector = None
+        self.nevyaz_vector = np.zeros((self.dim, 0))
 
 
         #self.coefficient_matrix = np.array((self.dim, self.dim))

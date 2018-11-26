@@ -61,8 +61,8 @@ class ThreeDimOilWaterImpes:
         ro_der = cell.layer.ro_water_0 * cell.layer.c_f_water
         A = 1 # TODO: свериться. На самом деле помоему коэффициент не совесем такой
         # Вот такой коэффициент
-        coeff = state_n_plus.get_pressure_oil(), state_n.get_pressure_oil(), A * state_n_plus.get_c1_p() + state_n_plus.get_c2_p()
-        # TODO: set coefficients a_d similar as in filtration
+        coeff = A * state_n_plus.get_c1_p() + state_n_plus.get_c2_p()
+        # TODO: set coefficients a_d similar as in filtration и пререписать c1_p и c2_p
         return coeff
 
     def count_b(self, flow):
@@ -137,18 +137,31 @@ class ThreeDimOilWaterImpes:
         f = np.empty((0, matrix_size))
         g = np.empty((0, matrix_size))
         coeff_a_d = np.empty((0, matrix_size))
+        coeff_a_d_nevyaz = np.empty((0, matrix_size))
+
         for k in range(Layer.N_z):
             for i in range(Layer.N_x):
                 for j in range(Layer.N_y):
                     flow = flow_array[k, i, j]
                     cell = cell_container.get_cell(k, i, j)
+                    pressure_n = cell.get_cell_state_n().get_pressure_oil()
+                    pressure_n_plus = cell.get_cell_state_n_plus().get_pressure_oil()
                     b = np.append(b, self.count_b(flow))  # Откусываем большой сдвиг с конца
                     c = np.append(c, self.count_c(flow))  # Откусываем большой сдвиг с начала
                     d = np.append(d, self.count_d(flow))  # Откусываем малый сдвиг с конца
                     e = np.append(e, self.count_e(flow))  # Откусываем малый сдвиг с начала
                     f = np.append(f, self.count_f(flow))  # Остается неизменным сдвиг -1
                     g = np.append(g, self.count_g(flow))  # Остается неизменным сдвиг + 1
-                    coeff_a_d = np.append(coeff_a_d, self.count_a(cell))
+
+                    a_d = self.count_a(cell)
+                    coeff_a_d = np.append(coeff_a_d, a_d)
+                    coeff_a_d_nevyaz = np.append(coeff_a_d_nevyaz, a_d * (pressure_n_plus - pressure_n))
+
+        #TODO:добавляем в невязку
+        # Невязка a_d
+        solver_slau.nevyaz_vector = solver_slau.nevyaz_vector + coeff_a_d_nevyaz
+
+        # Невязка от ф
 
         a = - b - c - d - e - f - g - coeff_a_d
 
@@ -164,11 +177,14 @@ class ThreeDimOilWaterImpes:
         diagonals = [a, f, g, e, d, c, b]
         shifts = [0, -1, 1, -shift_Nx, shift_Nx, -shift_Nxy, shift_Nxy]
         solver_slau.coefficient_matrix = diags(diagonals, shifts).toarray()
+        #col = [1, 2, 3]
+        #a = np.array(col)
+        #a = a.reshape((-1, 1))
+
+
+        # TODO: generate nevyaz:
 
         print('bebe')
-
-
-
 
     def solve_slau(self):
         # TODO: Реши систему. Тащемта можешь использовать стандартный решатель
