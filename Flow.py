@@ -20,30 +20,45 @@ class Flow:
         :param cell_container: контрейнер с клетками. Объект класса CellContainer
         :return: массив потоков. Массив объектов типа Flow
         """
-        flow_array = np.zeros((Layer.N_z - 1, Layer.N_x - 1, Layer.N_y - 1), dtype=Flow)
-        for k in range(Layer.N_z - 1):
-            for i in range(Layer.N_x - 1):
-                for j in range(Layer.N_y - 1):
+        flow_array = np.zeros((Layer.N_z, Layer.N_x, Layer.N_y), dtype=Flow)
+        for k in range(Layer.N_z):
+            for i in range(Layer.N_x):
+                for j in range(Layer.N_y):
                     cell = cell_container.get_cell(k, i, j)
                     left_cell = np.array([cell,
                                           cell,
                                           cell])
 
-                    right_cell = np.array([cell_container.get_cell(k, i + 1, j),
-                                          cell_container.get_cell(k, i, j + 1),
-                                          cell_container.get_cell(k + 1, i, j)])
+                    right_cell_x = None
+                    right_cell_y = None
+                    right_cell_z = None
+
+                    if i != Layer.N_x - 1:
+                        right_cell_x = cell_container.get_cell(k, i + 1, j)
+
+                    if j != Layer.N_y - 1:
+                        right_cell_y = cell_container.get_cell(k, i, j + 1)
+
+                    if k != Layer.N_z - 1:
+                        right_cell_z = cell_container.get_cell(k + 1, i, j)
+
+                    right_cell = np.array([right_cell_x,
+                                          right_cell_y,
+                                          right_cell_z])
 
                     flow_array[k, i, j] = Flow(left_cell, right_cell)
 
         return flow_array
 
     def get_max_pressure_cell(self, dimIndex, componentIndex):
+        if self.right_cell[dimIndex] is None:
+            return None
         left_cell_pressure = self.left_cell[dimIndex].get_cell_state_n_plus().get_components_pressure()
         right_cell_pressure = self.left_cell[dimIndex].get_cell_state_n_plus().get_components_pressure()
         if left_cell_pressure[componentIndex] >= right_cell_pressure[componentIndex]:
             return self.left_cell[dimIndex]
         else:
-            return self.right_cell
+            return self.right_cell[dimIndex]
 
 
     def count_flow(self):
@@ -51,9 +66,12 @@ class Flow:
             t_component_table = np.zeros(Layer.dim)  # Столбец размером Layer.dim. Будем заполнять матрицу по столбцам для каждой компоненты
             for dimIndex in range(Layer.dim):
                 cell = self.get_max_pressure_cell(dimIndex, componentIndex)
-                cell_state_n_plus = cell.get_cell_state_n_plus()
-                # TODO: По сути k - это вектор, поэтому нужно будет что-то с ним сделать
-                t_component_element = (cell.get_k() * cell_state_n_plus.get_components_k_r()[componentIndex] /
+                if cell is None:
+                    t_component_element = 0
+                else:
+                    cell_state_n_plus = cell.get_cell_state_n_plus()
+                    # TODO: По сути k - это вектор, поэтому нужно будет что-то с ним сделать
+                    t_component_element = (cell.get_k() * cell_state_n_plus.get_components_k_r()[componentIndex] /
                                        cell.get_mu_oil_water()[componentIndex]) * (1 / Layer.h) ** 2.0 * \
                                        cell_state_n_plus.get_components_ro()[componentIndex]
                 t_component_table[dimIndex] = t_component_element
