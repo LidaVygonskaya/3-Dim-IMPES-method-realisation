@@ -52,9 +52,9 @@ class Flow:
 
     def get_max_pressure_cell(self, dimIndex, componentIndex):
         if self.right_cell[dimIndex] is None:
-            return None
+            return self.left_cell[dimIndex]
         left_cell_pressure = self.left_cell[dimIndex].get_cell_state_n_plus().get_components_pressure()
-        right_cell_pressure = self.left_cell[dimIndex].get_cell_state_n_plus().get_components_pressure()
+        right_cell_pressure = self.right_cell[dimIndex].get_cell_state_n_plus().get_components_pressure()
         if left_cell_pressure[componentIndex] >= right_cell_pressure[componentIndex]:
             return self.left_cell[dimIndex]
         else:
