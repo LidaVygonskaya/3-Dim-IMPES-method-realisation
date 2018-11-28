@@ -1,5 +1,6 @@
 import numpy as np
-from scipy.sparse import bsr_matrix
+import scipy.sparse.linalg as sc
+
 from Layer import Layer
 
 
@@ -10,12 +11,9 @@ class SolverSlau:
         self.N_z = Layer.N_z
         self.dim = Layer.N_x * Layer.N_y * Layer.N_z
         self.coefficient_matrix = None
-        self.nevyaz_vector = np.zeros((self.dim, 0))
-
-        self.coefficient_matrix = bsr_matrix((self.dim, self.dim))
-        # TODO: sparse diags посмотри пример придется все переделывать
-        self.nevyaz_vector = np.zeros(self.dim)
-        self.result_vector = []
+        self.nevyaz_vector = np.zeros((self.dim, 1))
+        #self.nevyaz_vector = np.zeros(self.dim)
+        self.result_vector = None
 
     def add_coefficient(self, i, j, coefficient):
         self.coefficient_matrix[i, j] += coefficient
@@ -51,7 +49,6 @@ class SolverSlau:
         return self.result_vector
 
     def solve_slau(self):
-        # TODO: добавить стандартный решатель
-        pass
+        self.result_vector = sc.bicg(self.coefficient_matrix, self.nevyaz_vector)
 
 

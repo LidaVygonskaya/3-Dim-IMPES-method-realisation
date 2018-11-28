@@ -61,6 +61,7 @@ class Flow:
             return self.right_cell[dimIndex]
 
 
+    # TODO: зови Яна. Одной лень
     def count_flow(self):
         for componentIndex in range(Layer.components_count):
             t_component_table = np.zeros(Layer.dim)  # Столбец размером Layer.dim. Будем заполнять матрицу по столбцам для каждой компоненты

@@ -5,8 +5,8 @@ from CellContainer import CellContainer
 from Flow import Flow
 from SolverSlau import SolverSlau
 
-solverSlau = SolverSlau()
-impes = ThreeDimOilWaterImpes(solverSlau)
+solver_slau = SolverSlau()
+impes = ThreeDimOilWaterImpes(solver_slau)
 
 cell_container = CellContainer()  # Проверь на счет eq_index. Внутри реализации написано чо каво
 cell_container.initialize_cells()
@@ -18,7 +18,7 @@ time = impes.tau  # Сразу обозначим это как первый ш�
 
 # TODO: А вот здесь добавь шаг по времени. Пока посчитаем только для одного
 delta_k = impes.generate_delta_k()  # Генерируем начальное приближение (Я больше не лист я куб нах)
-cell_container.equate_cell_states()  # State_n = State_n_plus
+#cell_container.equate_cell_states()  # State_n = State_n_plus
 
 while impes.check_norm(delta_k):
     impes.recount_properties(cell_container)
@@ -26,6 +26,8 @@ while impes.check_norm(delta_k):
     impes.generate_matrix(flows, cell_container)
 
     impes.solve_slau()
+    a = solver_slau.get_result()
+    print('bebe')
     #delta_k = solver_slau.get_result() Не знаю, Лидос, нужны ли тебе эти строчки, смотри сама
     #solver_slau.clear_result()
 

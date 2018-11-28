@@ -15,7 +15,7 @@ class CellContainer:
                     # TODO: только в местах где потоки выходят из куба нулевая проводимость. Надо их как то выделить
                     # Проверяем является ли клетка граничной, если да, то ставим, что она граничная
                     if (k == 0 or k == Layer.N_z - 1) or(i == 0 or i == Layer.N_x - 1) or (j == 0 or j == Layer.N_y - 1):
-                        self.container[k, i, j] = Cell(eq_index, True)
+                        self.container[k, i, j] = Cell(eq_index)
                     else:
                         self.container[k, i, j] = Cell(eq_index)
                     eq_index += 1
@@ -31,7 +31,10 @@ class CellContainer:
         for state in cell.get_cell_states():
             state.set_s_water(Layer.s_water_init)
             state.set_s_oil(1.0 - Layer.s_water_init)
-            state.set_pressure_oil(Layer.pressure_oil_init)
+            if cell.is_n_plus_state(state):
+                state.set_pressure_oil(Layer.pressure_oil_init + Layer.delta_0)
+            else:
+                state.set_pressure_oil(Layer.pressure_oil_init)
             state.set_pressure_cap(Layer.count_pressure_cap(state.get_s_water()))
             state.set_pressure_water(state.get_pressure_oil() - state.get_pressure_cap())  # Отнимается от каждого элемента матрицы
 

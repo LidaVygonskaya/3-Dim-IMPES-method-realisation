@@ -63,8 +63,6 @@ class ThreeDimOilWaterImpes:
         return ((1.0 - state_n.get_s_water()) * (
             state_n.get_fi() * Layer.oil.ro_oil_0 * Layer.oil.c_f_oil + Layer.c_r * Layer.fi_0 * state_n_plus.get_ro_oil())) / self.tau
 
-
-
     # TODO: реализовать функции подсчета коэффициентов
     def count_a(self, cell):
         # Коэффициент в матрицу потоков берется просто как разность всех коэффициентов
@@ -85,7 +83,7 @@ class ThreeDimOilWaterImpes:
         pass
 
     def count_b(self, flow):
-        # TODO: добавлять r_ost в невязку, и коэффициент домноженный на давление
+        # TODO: Редактировать потоковый коэффициент
         # Стоит в матрице на (x, y + Nx * Ny). P(i+1, j, k)
         left_cell = flow.get_left_cell('x')
         right_cell = flow.get_right_cell('x')
@@ -207,10 +205,11 @@ class ThreeDimOilWaterImpes:
                     a_d = self.count_a(cell)
                     coeff_a_d = np.append(coeff_a_d, a_d)
                     coeff_a_d_nevyaz = np.append(coeff_a_d_nevyaz, a_d * (pressure_n_plus - pressure_n))
+                    #c = np.transpose([coeff_a_d_nevyaz])
 
         #TODO:добавляем в невязку
         # Невязка a_d
-        self.solver_slau.add_vector_to_nevyaz(coeff_a_d_nevyaz)
+        self.solver_slau.add_vector_to_nevyaz(np.transpose([coeff_a_d_nevyaz]))
         # Невязка от ф
         a = - b - c - d - e - f - g - coeff_a_d
         # TODO: откусить
@@ -227,8 +226,7 @@ class ThreeDimOilWaterImpes:
         self.solver_slau.coefficient_matrix = diags(diagonals, shifts).toarray()
 
     def solve_slau(self):
-        # TODO: Реши систему. Тащемта можешь использовать стандартный решатель
-        pass
+       self.solver_slau.solve_slau()
 
     def update_pressure(self, cell_container, delta_k):
         # TODO: Обнови давление ага да

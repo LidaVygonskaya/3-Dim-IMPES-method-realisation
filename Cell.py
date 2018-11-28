@@ -8,6 +8,12 @@ class Cell:
         self.cell_states = [CellState(), CellState()]#n, n + 1 layers
         self.eq_index = eq_index
 
+    def is_n_plus_state(self, state):
+        if self.cell_states.index(state) == 1:
+            return True
+        else:
+            return False
+
     def is_boundary_cell(self):
         """
         Проверяет является ли клетка граничной

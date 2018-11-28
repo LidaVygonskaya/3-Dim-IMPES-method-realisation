@@ -12,9 +12,9 @@ class Layer:
     dim = 3  # Размерность пространства
 
     # Количество ячеек
-    N_x = 3
-    N_y = 3
-    N_z = 3
+    N_x = 5
+    N_y = 5
+    N_z = 5
 
     # Координаты и шаги
     # TODO: По разной координатной оси разный шаг по пространству
@@ -42,6 +42,8 @@ class Layer:
     oil = Oil()
     water = Water()
     components = [oil, water]
+
+    delta_0 = 1000.0  # Начальная прибавка по давлению в паскалях
 
     @staticmethod
     def count_pressure_cap(s_water):
