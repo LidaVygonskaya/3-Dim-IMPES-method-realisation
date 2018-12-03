@@ -12,7 +12,6 @@ class SolverSlau:
         self.dim = Layer.N_x * Layer.N_y * Layer.N_z
         self.coefficient_matrix = None
         self.nevyaz_vector = np.zeros((self.dim, 1))
-        #self.nevyaz_vector = np.zeros(self.dim)
         self.result_vector = None
 
     def add_coefficient(self, i, j, coefficient):
@@ -49,6 +48,9 @@ class SolverSlau:
         return self.result_vector
 
     def solve_slau(self):
-        self.result_vector = sc.bicg(self.coefficient_matrix, self.nevyaz_vector)
+        #self.result_vector = sc.bicg(self.coefficient_matrix, self.nevyaz_vector)
+        self.result_vector = sc.spsolve(self.coefficient_matrix, self.nevyaz_vector)
 
+    def clear_result(self):
+        self.result_vector = None
 

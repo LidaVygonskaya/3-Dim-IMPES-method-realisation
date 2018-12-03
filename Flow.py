@@ -8,8 +8,8 @@ from Enums import Components
 class Flow:
     def __init__(self, left_cell, right_cell):
         self.t_oil_water = np.zeros((Layer.dim, Layer.components_count))
-        self.left_cell = left_cell#np.zeros((Layer.dim, Layer.components_count), dtype=Cell)
-        self.right_cell = right_cell#np.zeros((Layer.dim, Layer.components_count), dtype=Cell)
+        self.left_cell = left_cell
+        self.right_cell = right_cell
 
     @staticmethod
     def initialize_flow_array(cell_container):

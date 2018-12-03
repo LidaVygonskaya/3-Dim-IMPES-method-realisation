@@ -10,19 +10,20 @@ class ThreeDimOilWaterImpes:
         self.tau_default = 86400
         self.tau = self.tau_default
         self.delta_0 = 1000  # Начальное приближение, на которое отличаются давления
-        self.delta_max = 1
+        self.delta_max = 10 ** (-3)
         self.solver_slau = solver_slau
 
     def generate_delta_k(self):
-        delta_k = self.delta_0 * np.ones((Layer.N_z, Layer.N_x, Layer.N_z))
+        delta_k = self.delta_0 * np.ones(Layer.N_z * Layer.N_x * Layer.N_z)
         return delta_k
 
     def count_norm(self, delta_k):
-        return np.amax(delta_k)
+        return np.amax(np.absolute(delta_k))
 
     def check_norm(self, delta_k):
         isMore = True
         norm = self.count_norm(delta_k)
+        print(norm)
         if norm <= self.delta_max:
             isMore = False
         return isMore
@@ -87,8 +88,8 @@ class ThreeDimOilWaterImpes:
         # Стоит в матрице на (x, y + Nx * Ny). P(i+1, j, k)
         left_cell = flow.get_left_cell('x')
         right_cell = flow.get_right_cell('x')
-        if right_cell is None:
-            return 0
+        #if right_cell is None:
+        #    return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         A = 1
@@ -102,13 +103,13 @@ class ThreeDimOilWaterImpes:
         # Стоит в матрице на (x + Nx * Ny, y). P(i-1, j, k)
         left_cell = flow.get_left_cell('x')
         right_cell = flow.get_right_cell('x')
-        if right_cell is None:
-            return 0
+        A = 1
+        c = A * flow.get_water_flow('x') + flow.get_oil_flow('x')
+        #if right_cell is None:
+        #    return c
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
 
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
-        A = 1
-        c = A * flow.get_water_flow('x') + flow.get_oil_flow('x')
         r_ost = -A * flow.get_water_flow('x') * (
             left_cell.get_cell_state_n_plus().get_pressure_cap() - right_cell.get_cell_state_n_plus().get_pressure_cap())
         self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost + c * (pressure_right - pressure_left))
@@ -118,8 +119,8 @@ class ThreeDimOilWaterImpes:
         # Стоит в матрице на (x + Nx * Ny, y). P(i, j + 1, k)
         left_cell = flow.get_left_cell('y')
         right_cell = flow.get_right_cell('y')
-        if right_cell is None:
-            return 0
+        #if right_cell is None:
+        #    return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         A = 1
@@ -133,12 +134,12 @@ class ThreeDimOilWaterImpes:
         # Стоит в матрице на (x + Nx * Ny, y). P(i, j - 1, k)
         left_cell = flow.get_left_cell('y')
         right_cell = flow.get_right_cell('y')
-        if right_cell is None:
-            return 0
-        pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
-        pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         A = 1
         e = A * flow.get_water_flow('y') + flow.get_oil_flow('y')
+        #if right_cell is None:
+        #    return e
+        pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
+        pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         r_ost = -A * flow.get_water_flow('y') * (
             left_cell.get_cell_state_n_plus().get_pressure_cap() - right_cell.get_cell_state_n_plus().get_pressure_cap())
         self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost + e * (pressure_right - pressure_left))
@@ -148,13 +149,13 @@ class ThreeDimOilWaterImpes:
         # Стоит в матрице на (x + Nx * Ny, y). P(i, j, k - 1)
         left_cell = flow.get_left_cell('z')
         right_cell = flow.get_right_cell('z')
-        if right_cell is None:
-            return 0
-        pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
-        pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         A = 1
         f = A * flow.get_water_flow('z') + flow.get_oil_flow('z')
-        r_ost = -A * flow.get_water_flow('y') * (
+        #if right_cell is None:
+        #    return f
+        pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
+        pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
+        r_ost = -A * flow.get_water_flow('z') * (
             left_cell.get_cell_state_n_plus().get_pressure_cap() - right_cell.get_cell_state_n_plus().get_pressure_cap())
         self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost + f * (pressure_right - pressure_left))
         return f
@@ -163,13 +164,13 @@ class ThreeDimOilWaterImpes:
         # Стоит в матрице на (x + Nx * Ny, y). P(i, j, k + 1)
         left_cell = flow.get_left_cell('z')
         right_cell = flow.get_right_cell('z')
-        if right_cell is None:
-            return 0
+        #if right_cell is None:
+        #    return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         A = 1
         g = A * flow.get_water_flow('z') + flow.get_oil_flow('z')
-        r_ost = -A * flow.get_water_flow('y') * (
+        r_ost = -A * flow.get_water_flow('z') * (
             right_cell.get_cell_state_n_plus().get_pressure_cap() - left_cell.get_cell_state_n_plus().get_pressure_cap())
         self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost + g * (pressure_left - pressure_right))
         return g
@@ -205,7 +206,6 @@ class ThreeDimOilWaterImpes:
                     a_d = self.count_a(cell)
                     coeff_a_d = np.append(coeff_a_d, a_d)
                     coeff_a_d_nevyaz = np.append(coeff_a_d_nevyaz, a_d * (pressure_n_plus - pressure_n))
-                    #c = np.transpose([coeff_a_d_nevyaz])
 
         #TODO:добавляем в невязку
         # Невязка a_d
@@ -215,20 +215,46 @@ class ThreeDimOilWaterImpes:
         # TODO: откусить
         shift_Nx = self.solver_slau.get_shift_N_x()
         shift_Nxy = self.solver_slau.get_shift_N_xy()
+        """
         b = b[:-(shift_Nxy)]  # Откусываем большой сдвиг с конца
         c = c[(shift_Nxy):]  # Откусываем большой сдвиг с начала
         d = d[:-(shift_Nx)]  # Откусываем малый сдвиг с конца
         e = e[(shift_Nx):]  # Откусываем малый сдвиг с начал
         f = f[1:]
         g = g[:-1]
-        diagonals = [a, f, g, e, d, c, b]
+        """
+
+        f = f[(shift_Nxy):]
+        g = g[:-(shift_Nxy)]
+
+        e = e[1:]
+        d = d[:-1]
+
+        c = c[(shift_Nx):]
+        b = b[:(-shift_Nx)]
+
+        diagonals = [a, e, d, c, b, f, g]
+        #diagonals = [a, f, g, e, d, c, b]
         shifts = [0, -1, 1, -shift_Nx, shift_Nx, -shift_Nxy, shift_Nxy]
-        self.solver_slau.coefficient_matrix = diags(diagonals, shifts).toarray()
+        self.solver_slau.coefficient_matrix = diags(diagonals, shifts)#.toarray()
+        # Для смотрения
+        smotrenie = self.solver_slau.coefficient_matrix.toarray()
+        print("be")
 
     def solve_slau(self):
        self.solver_slau.solve_slau()
 
     def update_pressure(self, cell_container, delta_k):
+        eq_index = 0
+        for k in range(Layer.N_z):
+            for i in range(Layer.N_x):
+                for j in range(Layer.N_y):
+                    cell = cell_container.get_cell(k, i, j)
+                    state_n_plus = cell.get_cell_state_n_plus()
+                    state_n_plus.set_pressure_oil(state_n_plus.get_pressure_oil() + delta_k[eq_index])
+                    state_n_plus.set_pressure_water(state_n_plus.get_pressure_water() - state_n_plus.get_pressure_cap())
+                    eq_index += 1
+
         # TODO: Обнови давление ага да
         pass
 
