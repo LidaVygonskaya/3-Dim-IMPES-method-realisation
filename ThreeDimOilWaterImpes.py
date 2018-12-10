@@ -7,7 +7,7 @@ from Layer import Layer
 # TODO: do self.solverSlau
 class ThreeDimOilWaterImpes:
     def __init__(self, solver_slau):
-        self.tau_default = 86400
+        self.tau_default = 8.6400
         self.tau = self.tau_default
         self.delta_0 = 1000  # Начальное приближение, на которое отличаются давления
         self.delta_max = 10 ** (-3)
@@ -88,8 +88,8 @@ class ThreeDimOilWaterImpes:
         # Стоит в матрице на (x, y + Nx * Ny). P(i+1, j, k)
         left_cell = flow.get_left_cell('x')
         right_cell = flow.get_right_cell('x')
-        #if right_cell is None:
-        #    return 0
+        if right_cell is None:
+            return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         A = 1
@@ -105,8 +105,10 @@ class ThreeDimOilWaterImpes:
         right_cell = flow.get_right_cell('x')
         A = 1
         c = A * flow.get_water_flow('x') + flow.get_oil_flow('x')
-        #if right_cell is None:
-        #    return c
+        if right_cell is None:
+            return c
+        if left_cell.is_boundary_cell_x():
+            return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
 
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
@@ -119,8 +121,8 @@ class ThreeDimOilWaterImpes:
         # Стоит в матрице на (x + Nx * Ny, y). P(i, j + 1, k)
         left_cell = flow.get_left_cell('y')
         right_cell = flow.get_right_cell('y')
-        #if right_cell is None:
-        #    return 0
+        if right_cell is None:
+            return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         A = 1
@@ -136,8 +138,10 @@ class ThreeDimOilWaterImpes:
         right_cell = flow.get_right_cell('y')
         A = 1
         e = A * flow.get_water_flow('y') + flow.get_oil_flow('y')
-        #if right_cell is None:
-        #    return e
+        if right_cell is None:
+            return e
+        if left_cell.is_boundary_cell_y():
+            return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         r_ost = -A * flow.get_water_flow('y') * (
@@ -151,8 +155,8 @@ class ThreeDimOilWaterImpes:
         right_cell = flow.get_right_cell('z')
         A = 1
         f = A * flow.get_water_flow('z') + flow.get_oil_flow('z')
-        #if right_cell is None:
-        #    return f
+        if right_cell is None:
+            return f
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         r_ost = -A * flow.get_water_flow('z') * (
@@ -164,8 +168,8 @@ class ThreeDimOilWaterImpes:
         # Стоит в матрице на (x + Nx * Ny, y). P(i, j, k + 1)
         left_cell = flow.get_left_cell('z')
         right_cell = flow.get_right_cell('z')
-        #if right_cell is None:
-        #    return 0
+        if right_cell is None:
+            return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         A = 1
@@ -215,14 +219,6 @@ class ThreeDimOilWaterImpes:
         # TODO: откусить
         shift_Nx = self.solver_slau.get_shift_N_x()
         shift_Nxy = self.solver_slau.get_shift_N_xy()
-        """
-        b = b[:-(shift_Nxy)]  # Откусываем большой сдвиг с конца
-        c = c[(shift_Nxy):]  # Откусываем большой сдвиг с начала
-        d = d[:-(shift_Nx)]  # Откусываем малый сдвиг с конца
-        e = e[(shift_Nx):]  # Откусываем малый сдвиг с начал
-        f = f[1:]
-        g = g[:-1]
-        """
 
         f = f[(shift_Nxy):]
         g = g[:-(shift_Nxy)]
@@ -234,12 +230,12 @@ class ThreeDimOilWaterImpes:
         b = b[:(-shift_Nx)]
 
         diagonals = [a, e, d, c, b, f, g]
-        #diagonals = [a, f, g, e, d, c, b]
         shifts = [0, -1, 1, -shift_Nx, shift_Nx, -shift_Nxy, shift_Nxy]
-        self.solver_slau.coefficient_matrix = diags(diagonals, shifts)#.toarray()
+        self.solver_slau.coefficient_matrix = diags(diagonals, shifts)
         # Для смотрения
         smotrenie = self.solver_slau.coefficient_matrix.toarray()
         print("be")
+
 
     def solve_slau(self):
        self.solver_slau.solve_slau()

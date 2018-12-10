@@ -72,7 +72,7 @@ class Flow:
                 else:
                     cell_state_n_plus = cell.get_cell_state_n_plus()
                     # TODO: По сути k - это вектор, поэтому нужно будет что-то с ним сделать
-                    t_component_element = (cell.get_k() * cell_state_n_plus.get_components_k_r()[componentIndex] /
+                    t_component_element = (cell.get_k(dimIndex) * cell_state_n_plus.get_components_k_r()[componentIndex] /
                                        cell.get_mu_oil_water()[componentIndex]) * (1 / Layer.h) ** 2.0 * \
                                        cell_state_n_plus.get_components_ro()[componentIndex]
                 t_component_table[dimIndex] = t_component_element

@@ -14,8 +14,14 @@ class CellContainer:
                     # TODO: Проверить действительно ли надо использовать такой номер уравнения
                     # TODO: только в местах где потоки выходят из куба нулевая проводимость. Надо их как то выделить
                     # Проверяем является ли клетка граничной, если да, то ставим, что она граничная
-                    if (k == 0 or k == Layer.N_z - 1) or(i == 0 or i == Layer.N_x - 1) or (j == 0 or j == Layer.N_y - 1):
-                        self.container[k, i, j] = Cell(eq_index)
+                    if j == 0 or j == Layer.N_y - 1:
+                        if i == 0 or i == Layer.N_x - 1:
+                            self.container[k, i, j] = Cell(eq_index, is_boundary_x=True, is_boundary_y=True)
+                        else:
+                            self.container[k, i, j] = Cell(eq_index, is_boundary_y=True)
+
+                    elif i == 0 or i == Layer.N_x - 1:
+                        self.container[k, i, j] = Cell(eq_index, is_boundary_x=True)
                     else:
                         self.container[k, i, j] = Cell(eq_index)
                     eq_index += 1

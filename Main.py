@@ -11,10 +11,10 @@ impes = ThreeDimOilWaterImpes(solver_slau)
 cell_container = CellContainer()  # Проверь на счет eq_index. Внутри реализации написано чо каво
 cell_container.initialize_cells()
 
+cell_container.get_cell(3, 3, 3).get_cell_state_n_plus().set_pressure_oil(100*101325)
 flows = Flow.initialize_flow_array(cell_container)
 
 time = impes.tau  # Сразу обозначим это как первый шаг по времени, потому что нулевой у нас есть
-
 
 # TODO: А вот здесь добавь шаг по времени. Пока посчитаем только для одного
 delta_k = impes.generate_delta_k()  # Генерируем начальное приближение (Я больше не лист я куб нах) Не нихуя все таки тупой массив
@@ -27,6 +27,10 @@ while impes.check_norm(delta_k):
 
     impes.solve_slau()
     delta_k = impes.solver_slau.get_result()
+    f = open('govno2.txt', 'w')
+    for de in delta_k:
+        f.write(str(de) + '\n')
+    f.close()
     impes.solver_slau.clear_result()
     impes.update_pressure(cell_container, delta_k)
 
