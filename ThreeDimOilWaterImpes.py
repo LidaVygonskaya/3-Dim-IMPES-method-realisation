@@ -22,7 +22,7 @@ class ThreeDimOilWaterImpes:
 
     def check_norm(self, delta_k):
         isMore = True
-        norm = self.count_norm(delta_k)
+        norm = self.count_norm(delta_k[0])
         print(norm)
         if norm <= self.delta_max:
             isMore = False
@@ -247,7 +247,7 @@ class ThreeDimOilWaterImpes:
                 for j in range(Layer.N_y):
                     cell = cell_container.get_cell(k, i, j)
                     state_n_plus = cell.get_cell_state_n_plus()
-                    state_n_plus.set_pressure_oil(state_n_plus.get_pressure_oil() + delta_k[eq_index])
+                    state_n_plus.set_pressure_oil(state_n_plus.get_pressure_oil() + delta_k[0][eq_index])
                     state_n_plus.set_pressure_water(state_n_plus.get_pressure_water() - state_n_plus.get_pressure_cap())
                     eq_index += 1
 
