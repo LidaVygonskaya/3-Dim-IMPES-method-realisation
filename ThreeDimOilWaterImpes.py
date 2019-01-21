@@ -51,6 +51,25 @@ class ThreeDimOilWaterImpes:
                 for j in range(Layer.N_z):
                     flow = flows[k, i, j]
                     flow.count_flow()
+    @staticmethod
+    def count_cells_flows(cell_container):
+        for k in range(Layer.N_z):
+            for i in range(Layer.N_x):
+                for j in range(Layer.N_y):
+                    cell = cell_container.get_cell(k, i, j)
+                    flow_array_x = cell.get_flow('x')
+                    flow_array_y = cell.get_flow('y')
+                    flow_array_z = cell.get_flow('z')
+
+                    for flow in flow_array_x:
+                        flow.count_flow()
+
+                    for flow in flow_array_y:
+                        flow.count_flow()
+
+                    for flow in flow_array_z:
+                        flow.count_flow()
+
 
     def count_c1_p(self, cell):
         state_n = cell.get_cell_state_n()
@@ -84,27 +103,27 @@ class ThreeDimOilWaterImpes:
         pass
 
     def count_b(self, flow):
-        # TODO: Редактировать потоковый коэффициент
+        # Плюсовый коэффициент
         # Стоит в матрице на (x, y + Nx * Ny). P(i+1, j, k)
-        left_cell = flow.get_left_cell('x')
-        right_cell = flow.get_right_cell('x')
+        left_cell = flow.get_left_cell()
+        right_cell = flow.get_right_cell()
         if right_cell is None:
             return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         A = 1
-        b = A * flow.get_water_flow('x') + flow.get_oil_flow('x')
-        r_ost = -A * flow.get_water_flow('x') * (
+        b = A * flow.get_water_flow() + flow.get_oil_flow()
+        r_ost = -A * flow.get_water_flow() * (
             right_cell.get_cell_state_n_plus().get_pressure_cap() - left_cell.get_cell_state_n_plus().get_pressure_cap())
         self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost + b * (pressure_left - pressure_right))
         return b
 
     def count_c(self, flow):
         # Стоит в матрице на (x + Nx * Ny, y). P(i-1, j, k)
-        left_cell = flow.get_left_cell('x')
-        right_cell = flow.get_right_cell('x')
+        left_cell = flow.get_left_cell()
+        right_cell = flow.get_right_cell()
         A = 1
-        c = A * flow.get_water_flow('x') + flow.get_oil_flow('x')
+        c = A * flow.get_water_flow() + flow.get_oil_flow()
         if right_cell is None:
             return c
         if left_cell.is_boundary_cell_x():
@@ -112,69 +131,69 @@ class ThreeDimOilWaterImpes:
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
 
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
-        r_ost = -A * flow.get_water_flow('x') * (
+        r_ost = -A * flow.get_water_flow() * (
             left_cell.get_cell_state_n_plus().get_pressure_cap() - right_cell.get_cell_state_n_plus().get_pressure_cap())
         self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost + c * (pressure_right - pressure_left))
         return c
 
     def count_d(self, flow):
         # Стоит в матрице на (x + Nx * Ny, y). P(i, j + 1, k)
-        left_cell = flow.get_left_cell('y')
-        right_cell = flow.get_right_cell('y')
+        left_cell = flow.get_left_cell()
+        right_cell = flow.get_right_cell()
         if right_cell is None:
             return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         A = 1
-        d = A * flow.get_water_flow('y') + flow.get_oil_flow('y')
-        r_ost = -A * flow.get_water_flow('y') * (
+        d = A * flow.get_water_flow() + flow.get_oil_flow()
+        r_ost = -A * flow.get_water_flow() * (
             right_cell.get_cell_state_n_plus().get_pressure_cap() - left_cell.get_cell_state_n_plus().get_pressure_cap())
         self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost + d * (pressure_left - pressure_right))
         return d
 
     def count_e(self, flow):
         # Стоит в матрице на (x + Nx * Ny, y). P(i, j - 1, k)
-        left_cell = flow.get_left_cell('y')
-        right_cell = flow.get_right_cell('y')
+        left_cell = flow.get_left_cell()
+        right_cell = flow.get_right_cell()
         A = 1
-        e = A * flow.get_water_flow('y') + flow.get_oil_flow('y')
+        e = A * flow.get_water_flow() + flow.get_oil_flow()
         if right_cell is None:
             return e
         if left_cell.is_boundary_cell_y():
             return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
-        r_ost = -A * flow.get_water_flow('y') * (
+        r_ost = -A * flow.get_water_flow() * (
             left_cell.get_cell_state_n_plus().get_pressure_cap() - right_cell.get_cell_state_n_plus().get_pressure_cap())
         self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost + e * (pressure_right - pressure_left))
         return e
 
     def count_f(self, flow):
         # Стоит в матрице на (x + Nx * Ny, y). P(i, j, k - 1)
-        left_cell = flow.get_left_cell('z')
-        right_cell = flow.get_right_cell('z')
+        left_cell = flow.get_left_cell()
+        right_cell = flow.get_right_cell()
         A = 1
-        f = A * flow.get_water_flow('z') + flow.get_oil_flow('z')
+        f = A * flow.get_water_flow() + flow.get_oil_flow()
         if right_cell is None:
             return f
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
-        r_ost = -A * flow.get_water_flow('z') * (
+        r_ost = -A * flow.get_water_flow() * (
             left_cell.get_cell_state_n_plus().get_pressure_cap() - right_cell.get_cell_state_n_plus().get_pressure_cap())
         self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost + f * (pressure_right - pressure_left))
         return f
 
     def count_g(self, flow):
         # Стоит в матрице на (x + Nx * Ny, y). P(i, j, k + 1)
-        left_cell = flow.get_left_cell('z')
-        right_cell = flow.get_right_cell('z')
+        left_cell = flow.get_left_cell()
+        right_cell = flow.get_right_cell()
         if right_cell is None:
             return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         A = 1
-        g = A * flow.get_water_flow('z') + flow.get_oil_flow('z')
-        r_ost = -A * flow.get_water_flow('z') * (
+        g = A * flow.get_water_flow() + flow.get_oil_flow()
+        r_ost = -A * flow.get_water_flow() * (
             right_cell.get_cell_state_n_plus().get_pressure_cap() - left_cell.get_cell_state_n_plus().get_pressure_cap())
         self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost + g * (pressure_left - pressure_right))
         return g
@@ -195,16 +214,15 @@ class ThreeDimOilWaterImpes:
         for k in range(Layer.N_z):
             for i in range(Layer.N_x):
                 for j in range(Layer.N_y):
-                    flow = flow_array[k, i, j]
                     cell = cell_container.get_cell(k, i, j)
                     pressure_n = cell.get_cell_state_n().get_pressure_oil()
                     pressure_n_plus = cell.get_cell_state_n_plus().get_pressure_oil()
-                    b = np.append(b, self.count_b(flow))  # Откусываем большой сдвиг с конца
-                    c = np.append(c, self.count_c(flow))  # Откусываем большой сдвиг с начала
-                    d = np.append(d, self.count_d(flow))  # Откусываем малый сдвиг с конца
-                    e = np.append(e, self.count_e(flow))  # Откусываем малый сдвиг с начала
-                    f = np.append(f, self.count_f(flow))  # Остается неизменным сдвиг -1
-                    g = np.append(g, self.count_g(flow))  # Остается неизменным сдвиг + 1
+                    b = np.append(b, self.count_b(cell.get_flow('x')))  # Откусываем большой сдвиг с конца
+                    c = np.append(c, self.count_c(cell.get_flow('x')))  # Откусываем большой сдвиг с начала
+                    d = np.append(d, self.count_d(cell.get_flow('y')))  # Откусываем малый сдвиг с конца
+                    e = np.append(e, self.count_e(cell.get_flow('y')))  # Откусываем малый сдвиг с начала
+                    f = np.append(f, self.count_f(cell.get_flow('z')))  # Остается неизменным сдвиг -1
+                    g = np.append(g, self.count_g(cell.get_flow('z')))  # Остается неизменным сдвиг + 1
 
                     # Добавляем в середину
                     a_d = self.count_a(cell)

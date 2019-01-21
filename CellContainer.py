@@ -32,6 +32,15 @@ class CellContainer:
     def get_cell(self, k, i, j):
         return self.container[k, i, j]
 
+    def initialize_flow(self, cell):
+
+        # TODO: initialize flow in one cell
+        pass
+
+    def initialize_flows(self):
+        # TODO: initialize all flows
+        pass
+
     @staticmethod
     def initialize_cell(cell):
         for state in cell.get_cell_states():

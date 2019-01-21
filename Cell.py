@@ -1,6 +1,9 @@
+import numpy as np
+
+
 from CellState import CellState
 from Layer import Layer
-
+from Flow import Flow
 
 class Cell:
     def __init__(self, eq_index, is_boundary_x=False, is_boundary_y=False):
@@ -8,6 +11,10 @@ class Cell:
         self.is_boundary_x = is_boundary_x
         self.cell_states = [CellState(), CellState()]#n, n + 1 layers
         self.eq_index = eq_index
+
+        self.flow_array_x = np.array([Flow(), Flow()], dtype=Flow)  # oil_water minus_plus
+        self.flow_array_y = np.array([Flow(), Flow()], dtype=Flow)
+        self.flow_array_z = np.array([Flow(), Flow()], dtype=Flow)
 
     def is_n_plus_state(self, state):
         if self.cell_states.index(state) == 1:
@@ -28,6 +35,19 @@ class Cell:
         :return: True - если клетка граничная. False - если нет
         """
         return self.is_boundary_x
+
+    def get_flow(self, direction):
+        if direction == 'x':
+            return self.flow_array_x
+        if direction == 'y':
+            return self.flow_array_y
+        if direction == 'z':
+            return self.flow_array_z
+
+    # Возвращает минус или плюс
+    def get_flow_coefficient(self, direction, index):
+        flow_array = self.get_flow(direction)
+        return flow_array[index]
 
     # TODO: rewrite all functions
     #Cell constant parameters

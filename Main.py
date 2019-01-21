@@ -12,7 +12,10 @@ cell_container = CellContainer()  # Проверь на счет eq_index. Вн�
 cell_container.initialize_cells()
 
 cell_container.get_cell(3, 3, 3).get_cell_state_n_plus().set_pressure_oil(100*101325)
-flows = Flow.initialize_flow_array(cell_container)
+
+cell_container.initialize_flows()
+Flow.initialize_flow(cell_container)
+#flows = Flow.initialize_flow_array(cell_container)
 
 time = impes.tau  # Сразу обозначим это как первый шаг по времени, потому что нулевой у нас есть
 
@@ -22,7 +25,7 @@ delta_k = impes.generate_delta_k()  # Генерируем начальное п
 
 while impes.check_norm(delta_k):
     impes.recount_properties(cell_container)
-    impes.count_flows(flows)
+    impes.count_cells_flows(cell_container)
     impes.generate_matrix(flows, cell_container)
 
     impes.solve_slau()
