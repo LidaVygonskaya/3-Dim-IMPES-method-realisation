@@ -1,5 +1,6 @@
 import numpy as np
 
+from Layer import Layer
 from ThreeDimOilWaterImpes import ThreeDimOilWaterImpes
 from CellContainer import CellContainer
 from Flow import Flow
@@ -38,6 +39,7 @@ while impes.check_norm(delta_k):
     f.close()
     impes.solver_slau.clear_result()
     impes.update_pressure(cell_container, delta_k)
+    print("b")
 
     # TODO: проверять сходимость если нужно опять же я хз
     #delta_k = solver_slau.get_result() Не знаю, Лидос, нужны ли тебе эти строчки, смотри сама
@@ -51,7 +53,14 @@ while impes.check_norm(delta_k):
 
 # TODO: Построить распределение давлений
 
+f = open('govno3.txt', 'w')
+for k in range(Layer.N_z):
+    for i in range(Layer.N_x):
+        for j in range(Layer.N_x):
+            cell = cell_container.get_cell(k, i, j)
+            f.write(str(cell.get_cell_state_n_plus().get_pressure_oil()) + '\n')
 
+f.close()
 impes.recount_properties(cell_container)
 impes.count_flows(flows)
 impes.update_saturation(cell_container, flows)

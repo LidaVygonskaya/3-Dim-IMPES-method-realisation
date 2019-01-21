@@ -7,7 +7,7 @@ from Enums import FlowComponents
 # TODO: do self.solverSlau
 class ThreeDimOilWaterImpes:
     def __init__(self, solver_slau):
-        self.tau_default = 86400
+        self.tau_default = 864.00
         self.tau = self.tau_default
         self.delta_0 = 1000  # Начальное приближение, на которое отличаются давления
         self.delta_max = 10 ** (-3)
@@ -146,7 +146,7 @@ class ThreeDimOilWaterImpes:
         d = A * flow.get_water_flow() + flow.get_oil_flow()
         r_ost = -A * flow.get_water_flow() * (
             right_cell.get_cell_state_n_plus().get_pressure_cap() - left_cell.get_cell_state_n_plus().get_pressure_cap())
-        self.solver_slau.add_nevyaz(right_cell.get_eq_index(), -r_ost + d * (pressure_left - pressure_right))
+        self.solver_slau.add_nevyaz(right_cell.get_eq_index(), -r_ost - d * (pressure_left - pressure_right))
         return d
 
     def count_e(self, flow):
@@ -161,7 +161,7 @@ class ThreeDimOilWaterImpes:
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         r_ost = -A * flow.get_water_flow() * (
             left_cell.get_cell_state_n_plus().get_pressure_cap() - right_cell.get_cell_state_n_plus().get_pressure_cap())
-        self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost + e * (pressure_right - pressure_left))
+        self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost - e * (pressure_right - pressure_left))
         return e
 
     def count_f(self, flow):
@@ -267,9 +267,6 @@ class ThreeDimOilWaterImpes:
                     state_n_plus.set_pressure_oil(state_n_plus.get_pressure_oil() + delta_k[eq_index])
                     state_n_plus.set_pressure_water(state_n_plus.get_pressure_water() - state_n_plus.get_pressure_cap())
                     eq_index += 1
-
-        # TODO: Обнови давление ага да
-        pass
 
     def update_saturation(self, cell_container, flows):
         # TODO: здесь обнови насыщенность
