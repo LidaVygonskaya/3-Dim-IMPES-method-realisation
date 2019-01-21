@@ -55,6 +55,15 @@ class Layer:
     delta_0 = 1000.0  # Начальная прибавка по давлению в паскалях
 
     @staticmethod
+    def get_h(direction):
+        if direction == 'x':
+            return Layer.h_array[0]
+        if direction == 'y':
+            return Layer.h_array[1]
+        if direction == 'z':
+            return Layer.h_array[2]
+
+    @staticmethod
     def count_pressure_cap(s_water):
         # TODO: Организовать подачу вектора на вход. Нельзя забывать что теперь это уже не скаляр
         # TODO: Нужно пробегаться по каждому значению x y z насыщенности в массиве

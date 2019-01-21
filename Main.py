@@ -10,8 +10,10 @@ impes = ThreeDimOilWaterImpes(solver_slau)
 
 cell_container = CellContainer()  # Проверь на счет eq_index. Внутри реализации написано чо каво
 cell_container.initialize_cells()
+cell = cell_container.get_cell(3, 3, 3)
 
-cell_container.get_cell(3, 3, 3).get_cell_state_n_plus().set_pressure_oil(100*101325)
+cell_container.get_cell(3, 3, 3).get_cell_state_n().set_pressure_oil(100*101325)
+cell_container.get_cell(3, 3, 3).get_cell_state_n_plus().set_pressure_oil(100*101325 + 1000)
 
 cell_container.initialize_flows()
 Flow.initialize_flow(cell_container)
@@ -26,7 +28,7 @@ delta_k = impes.generate_delta_k()  # Генерируем начальное п
 while impes.check_norm(delta_k):
     impes.recount_properties(cell_container)
     impes.count_cells_flows(cell_container)
-    impes.generate_matrix(flows, cell_container)
+    impes.generate_matrix(cell_container)
 
     impes.solve_slau()
     delta_k = impes.solver_slau.get_result()

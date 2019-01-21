@@ -48,8 +48,8 @@ class SolverSlau:
         return self.result_vector
 
     def solve_slau(self):
-        self.result_vector = sc.bicgstab(self.coefficient_matrix, self.nevyaz_vector)
-        #self.result_vector = sc.spsolve(self.coefficient_matrix, self.nevyaz_vector)
+        #self.result_vector = sc.bicgstab(self.coefficient_matrix, self.nevyaz_vector)
+        self.result_vector = sc.spsolve(self.coefficient_matrix, self.nevyaz_vector)
 
     def clear_result(self):
         self.result_vector = None

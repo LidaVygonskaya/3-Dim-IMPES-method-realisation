@@ -6,7 +6,7 @@ from Enums import Components, FlowComponents
 
 class Flow:
     def __init__(self, left_cell=None, right_cell=None):
-        self.t_oil_water = np.zeros((Layer.dim, Layer.components_count))
+        self.t_oil_water = np.zeros(Layer.components_count)
         self.left_cell = left_cell
         self.right_cell = right_cell
 
@@ -22,96 +22,96 @@ class Flow:
                     flow_array_z = cell.get_flow('z')
 
                     for component_index in range(Layer.components_count):
+                        #========================= Для x ===============================================================
                         if i == Layer.N_x - 1:
-                            flow_array_x[component_index, FlowComponents.minus.value].left_cell = cell_container.get_cell(k, i - 1, j)
-                            flow_array_x[component_index, FlowComponents.minus.value].right_cell = cell
+                            flow_array_x[FlowComponents.minus.value].left_cell = cell_container.get_cell(k, i - 1, j)
+                            flow_array_x[FlowComponents.minus.value].right_cell = cell
 
-                            flow_array_x[component_index, FlowComponents.plus.value].left_cell = cell
-                            flow_array_x[component_index, FlowComponents.plus.value].right_cell = None
+                            flow_array_x[FlowComponents.plus.value].left_cell = cell
+                            flow_array_x[FlowComponents.plus.value].right_cell = None
 
                         elif i == 0:
-                            flow_array_x[component_index, FlowComponents.minus.value].left_cell = None
-                            flow_array_x[component_index, FlowComponents.minus.value].right_cell = cell
+                            flow_array_x[FlowComponents.minus.value].left_cell = None
+                            flow_array_x[FlowComponents.minus.value].right_cell = cell
 
-                            flow_array_x[component_index, FlowComponents.plus.value].left_cell = cell
-                            flow_array_x[component_index, FlowComponents.plus.value].right_cell = cell_container.get_cell(k, i + 1, j)
+                            flow_array_x[FlowComponents.plus.value].left_cell = cell
+                            flow_array_x[FlowComponents.plus.value].right_cell = cell_container.get_cell(k, i + 1, j)
 
                         else:
-                            flow_array_x[component_index, FlowComponents.minus.value].left_cell = cell_container.get_cell(k, i - 1, j)
-                            flow_array_x[component_index, FlowComponents.minus.value].right_cell = cell
+                            flow_array_x[FlowComponents.minus.value].left_cell = cell_container.get_cell(k, i - 1, j)
+                            flow_array_x[FlowComponents.minus.value].right_cell = cell
 
-                            flow_array_x[component_index, FlowComponents.plus.value].left_cell = cell
-                            flow_array_x[component_index, FlowComponents.plus.value].right_cell = cell_container.get_cell(k, i + 1, j)
+                            flow_array_x[FlowComponents.plus.value].left_cell = cell
+                            flow_array_x[FlowComponents.plus.value].right_cell = cell_container.get_cell(k, i + 1, j)
 
-                        # Для y
+                        #============================= Для y ===========================================================
                         if j == Layer.N_y - 1:
-                            flow_array_y[component_index, FlowComponents.minus.value].left_cell = cell_container.get_cell(k, i, j - 1)
-                            flow_array_y[component_index, FlowComponents.minus.value].right_cell = cell
+                            flow_array_y[FlowComponents.minus.value].left_cell = cell_container.get_cell(k, i, j - 1)
+                            flow_array_y[FlowComponents.minus.value].right_cell = cell
 
-                            flow_array_y[component_index, FlowComponents.plus.value].left_cell = cell
-                            flow_array_y[component_index, FlowComponents.plus.value].right_cell = None
+                            flow_array_y[FlowComponents.plus.value].left_cell = cell
+                            flow_array_y[FlowComponents.plus.value].right_cell = None
 
                         elif j == 0:
-                            flow_array_y[component_index, FlowComponents.minus.value].left_cell = None
-                            flow_array_y[component_index, FlowComponents.minus.value].right_cell = cell
+                            flow_array_y[FlowComponents.minus.value].left_cell = None
+                            flow_array_y[FlowComponents.minus.value].right_cell = cell
 
-                            flow_array_y[component_index, FlowComponents.plus.value].left_cell = cell
-                            flow_array_y[component_index, FlowComponents.plus.value].right_cell = cell_container.get_cell(k, i, j + 1)
+                            flow_array_y[FlowComponents.plus.value].left_cell = cell
+                            flow_array_y[FlowComponents.plus.value].right_cell = cell_container.get_cell(k, i, j + 1)
                         else:
-                            flow_array_y[component_index, FlowComponents.minus.value].left_cell = cell_container.get_cell(k, i, j - 1)
-                            flow_array_y[component_index, FlowComponents.minus.value].right_cell = cell
+                            flow_array_y[FlowComponents.minus.value].left_cell = cell_container.get_cell(k, i, j - 1)
+                            flow_array_y[FlowComponents.minus.value].right_cell = cell
 
-                            flow_array_y[component_index, FlowComponents.plus.value].left_cell = cell
-                            flow_array_y[component_index, FlowComponents.plus.value].right_cell = cell_container.get_cell(k, i, j + 1)
+                            flow_array_y[FlowComponents.plus.value].left_cell = cell
+                            flow_array_y[FlowComponents.plus.value].right_cell = cell_container.get_cell(k, i, j + 1)
 
-                        # Для z
+                        #============================= Для z ===========================================================
                         if k == Layer.N_z - 1:
-                            flow_array_z[component_index, FlowComponents.minus.value].left_cell = cell_container.get_cell(k - 1, i, j)
-                            flow_array_z[component_index, FlowComponents.minus.value].right_cell = cell
+                            flow_array_z[FlowComponents.minus.value].left_cell = cell_container.get_cell(k - 1, i, j)
+                            flow_array_z[FlowComponents.minus.value].right_cell = cell
 
-                            flow_array_z[component_index, FlowComponents.plus.value].left_cell = cell
-                            flow_array_z[component_index, FlowComponents.plus.value].right_cell = None
+                            flow_array_z[FlowComponents.plus.value].left_cell = cell
+                            flow_array_z[FlowComponents.plus.value].right_cell = None
                         elif k == 0:
-                            flow_array_z[component_index, FlowComponents.minus.value].left_cell = None
-                            flow_array_z[component_index, FlowComponents.minus.value].right_cell = cell
+                            flow_array_z[FlowComponents.minus.value].left_cell = None
+                            flow_array_z[FlowComponents.minus.value].right_cell = cell
 
-                            flow_array_z[component_index, FlowComponents.plus.value].left_cell = cell
-                            flow_array_z[component_index, FlowComponents.plus.value].right_cell = cell_container.get_cell(k + 1, i, j)
+                            flow_array_z[FlowComponents.plus.value].left_cell = cell
+                            flow_array_z[FlowComponents.plus.value].right_cell = cell_container.get_cell(k + 1, i, j)
                         else:
-                            flow_array_z[component_index, FlowComponents.minus.value].left_cell = cell_container.get_cell(k - 1, i, j)
-                            flow_array_z[component_index, FlowComponents.minus.value].right_cell = cell
+                            flow_array_z[FlowComponents.minus.value].left_cell = cell_container.get_cell(k - 1, i, j)
+                            flow_array_z[FlowComponents.minus.value].right_cell = cell
 
-                            flow_array_z[component_index, FlowComponents.plus.value].left_cell = cell
-                            flow_array_z[component_index, FlowComponents.plus.value].right_cell = cell_container.get_cell(k + 1, i, j)
+                            flow_array_z[FlowComponents.plus.value].left_cell = cell
+                            flow_array_z[FlowComponents.plus.value].right_cell = cell_container.get_cell(k + 1, i, j)
+                        #===============================================================================================
 
+    def get_max_pressure_cell(self, component_index):
+        left_cell = self.left_cell
+        right_cell = self.right_cell
 
-    def get_max_pressure_cell(self, dimIndex, componentIndex):
-        if self.right_cell[dimIndex] is None:
-            return self.left_cell[dimIndex]
-        left_cell_pressure = self.left_cell[dimIndex].get_cell_state_n_plus().get_components_pressure()
-        right_cell_pressure = self.right_cell[dimIndex].get_cell_state_n_plus().get_components_pressure()
-        if left_cell_pressure[componentIndex] >= right_cell_pressure[componentIndex]:
-            return self.left_cell[dimIndex]
+        if left_cell is None:
+            return right_cell
+        elif right_cell is None:
+            return left_cell
         else:
-            return self.right_cell[dimIndex]
+            left_cell_pressure = self.left_cell.get_cell_state_n_plus().get_components_pressure()
+            right_cell_pressure = self.right_cell.get_cell_state_n_plus().get_components_pressure()
+            if left_cell_pressure[component_index] >= right_cell_pressure[component_index]:
+                return left_cell
+            else:
+                return right_cell
 
-
-    # TODO: зови Яна. Одной лень
-    def count_flow(self):
-        for componentIndex in range(Layer.components_count):
-            t_component_table = np.zeros(Layer.dim)  # Столбец размером Layer.dim. Будем заполнять матрицу по столбцам для каждой компоненты
-            for dimIndex in range(Layer.dim):
-                cell = self.get_max_pressure_cell(dimIndex, componentIndex)
-                if cell is None:
-                    t_component_element = 0
-                else:
-                    cell_state_n_plus = cell.get_cell_state_n_plus()
-                    # TODO: По сути k - это вектор, поэтому нужно будет что-то с ним сделать
-                    t_component_element = (cell.get_k(dimIndex) * cell_state_n_plus.get_components_k_r()[componentIndex] /
-                                       cell.get_mu_oil_water()[componentIndex]) * (1 / Layer.h) ** 2.0 * \
-                                       cell_state_n_plus.get_components_ro()[componentIndex]
-                t_component_table[dimIndex] = t_component_element
-            self.t_oil_water[:, componentIndex] = t_component_table
+    def count_flow(self, direction):
+        for component_index in range(Layer.components_count):
+            t_component = 0
+            cell = self.get_max_pressure_cell(component_index)  # Max pressure cell
+            cell_state_n_plus = cell.get_cell_state_n_plus()
+            if self.left_cell is not None or self.right_cell is not None:
+                t_component = (cell.get_k(direction) * cell_state_n_plus.get_components_k_r()[component_index]
+                               / cell.get_mu_oil_water()[component_index])\
+                              * (1 / Layer.get_h(direction)) ** 2.0 * cell_state_n_plus.get_components_ro()[component_index]
+            self.t_oil_water[component_index] = t_component
 
     def get_left_cell(self):
         return self.left_cell
@@ -130,62 +130,3 @@ class Flow:
 
     def get_oil_flow(self):
         return self.t_oil_water[Components.OIL.value]
-
-    # Пока что не нужен. Это старый код. Заместо него есть initialize_flow
-    @staticmethod
-    def initialize_flow_array(cell_container):
-        """
-        Инициализирует потоки. Проставляет им левые и правые ячейки. В случае граничных ячеек потоки равен нулю.
-        В случае граничных ячеек пока что у потока стоит правая клетка равная левой клетке.
-        Размер матрицы потоков на один меньше с каждой стороны чем основного массива
-        :param cell_container: контрейнер с клетками. Объект класса CellContainer
-        :return: массив потоков. Массив объектов типа Flow
-        """
-        flow_array = np.zeros((Layer.N_z, Layer.N_x, Layer.N_y), dtype=Flow)
-        for k in range(Layer.N_z):
-            for i in range(Layer.N_x):
-                for j in range(Layer.N_y):
-                    cell = cell_container.get_cell(k, i, j)
-                    left_cell = np.array([cell,
-                                          cell,
-                                          cell])
-
-                    right_cell_x = None
-                    right_cell_y = None
-                    right_cell_z = None
-
-                    if i != Layer.N_x - 1:
-                        right_cell_x = cell_container.get_cell(k, i + 1, j)
-
-                    if j != Layer.N_y - 1:
-                        right_cell_y = cell_container.get_cell(k, i, j + 1)
-
-                    if k != Layer.N_z - 1:
-                        right_cell_z = cell_container.get_cell(k + 1, i, j)
-
-                    right_cell = np.array([right_cell_x,
-                                          right_cell_y,
-                                          right_cell_z])
-
-                    flow_array[k, i, j] = Flow(left_cell, right_cell)
-
-        return flow_array
-
-   # Старые геттеры и сеттеры
-    """
-        def get_right_cell(self, dim):
-            if dim == 'x':
-                return self.right_cell[0]
-            elif dim == 'y':
-                return self.right_cell[1]
-            elif dim == 'z':
-                return self.right_cell[2]
-
-        def get_left_cell(self, dim):
-            if dim == 'x':
-                return self.left_cell[0]
-            elif dim == 'y':
-                return self.left_cell[1]
-            elif dim == 'z':
-                return self.left_cell[2]
-        """

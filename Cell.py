@@ -12,9 +12,9 @@ class Cell:
         self.cell_states = [CellState(), CellState()]#n, n + 1 layers
         self.eq_index = eq_index
 
-        self.flow_array_x = np.array([Flow(), Flow()], dtype=Flow)  # oil_water minus_plus
-        self.flow_array_y = np.array([Flow(), Flow()], dtype=Flow)
-        self.flow_array_z = np.array([Flow(), Flow()], dtype=Flow)
+        self.flow_array_x = np.array([Flow() for _ in range(Layer.components_count)], dtype=Flow)  # Поток минус(для oil и water) Поток плюс(для oil и water)
+        self.flow_array_y = np.array([Flow() for _ in range(Layer.components_count)], dtype=Flow)
+        self.flow_array_z = np.array([Flow() for _ in range(Layer.components_count)], dtype=Flow)
 
     def is_n_plus_state(self, state):
         if self.cell_states.index(state) == 1:
@@ -54,13 +54,18 @@ class Cell:
     def get_eq_index(self):
         return self.eq_index
 
-    def get_k(self, dimIndex):
+    def get_k(self, direction):
         """
         Возвращает проницаемость определенной компоненты x, y или z
-        :param dimIndex:
+        :param direction:
         :return: k
         """
-        return Layer.k_array[dimIndex]
+        if direction == 'x':
+            return Layer.k_array[0]
+        if direction == 'y':
+            return Layer.k_array[1]
+        if direction == 'z':
+            return Layer.k_array[2]
 
     def get_c_f_water(self):
         pass
