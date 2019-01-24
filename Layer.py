@@ -12,9 +12,9 @@ class Layer:
     dim = 3  # Размерность пространства
 
     # Количество ячеек
-    N_x = 7
-    N_y = 7
-    N_z = 7
+    N_x = 6
+    N_y = 6
+    N_z = 6
 
     # Координаты и шаги
     # TODO: По разной координатной оси разный шаг по пространству
@@ -41,9 +41,9 @@ class Layer:
 
     k = (9.868233 * (10 ** (-13))) * 10 ** (-3)
     # TODO: Создать коэффициенты проницаемости
-    k_x = 0.0
+    k_x = k
     k_y = k
-    k_z = 0.0
+    k_z = k
     k_array = [k_x, k_y, k_z]
     mu_oil = 10.0 * (10.0 ** (-3))
     mu_water = 10.0 ** (-3)
@@ -64,15 +64,19 @@ class Layer:
             return Layer.h_array[2]
 
     @staticmethod
-    def count_pressure_cap(s_water):
-        # TODO: Организовать подачу вектора на вход. Нельзя забывать что теперь это уже не скаляр
-        # TODO: Нужно пробегаться по каждому значению x y z насыщенности в массиве
+    def get_pressure_cap_graph():
         pressure_cap_graph = {}  # s_water: pressure_cap
         file = open(Layer.p_cap_filename, 'r')
         for line in file.readlines():
             line = line.rstrip()
             line = line.split('\t')
             pressure_cap_graph.update({float(line[0]): float(line[1]) * Layer.atm})
+        return pressure_cap_graph
+
+
+    @staticmethod
+    def count_pressure_cap(s_water):
+        pressure_cap_graph = Layer.get_pressure_cap_graph()  # s_water: pressure_cap
         s_w_graph = list(pressure_cap_graph.keys())
         for i in range(len(s_w_graph)):
             if s_water <= s_w_graph[i]:
@@ -80,9 +84,19 @@ class Layer:
                                                                     - pressure_cap_graph.get(s_w_graph[i - 1])) \
                                                                     / (s_w_graph[i] - s_w_graph[i - 1]) \
                                                                     * (s_water - s_w_graph[i - 1])
-                # p_cap = 0
                 break
         return p_cap
+
+    @staticmethod
+    def count_p_cap_graph_der(s_water):
+        pressure_cap_graph = Layer.get_pressure_cap_graph()
+        s_w_graph = list(pressure_cap_graph.keys())
+        for i in range(len(s_w_graph)):
+            if s_water <= s_w_graph[i]:
+                p_cap_der = (pressure_cap_graph.get(s_w_graph[i]) - pressure_cap_graph.get(s_w_graph[i - 1])) / (
+                s_w_graph[i] - s_w_graph[i - 1])
+                break
+        return p_cap_der
 
     @classmethod
     def count_fi(cls,pressure_oil):

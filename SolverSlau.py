@@ -21,8 +21,8 @@ class SolverSlau:
         self.coefficient_matrix[i, j] = value
 
     def set_zero(self):
-        self.coefficient_matrix = np.zeros((self.dim, self.dim))
-        self.nevyaz_vector = np.zeros(self.dim)
+        self.coefficient_matrix = None
+        self.nevyaz_vector = np.zeros((self.dim, 1))
 
     def add_vector_to_nevyaz(self, vector):
         self.nevyaz_vector += vector

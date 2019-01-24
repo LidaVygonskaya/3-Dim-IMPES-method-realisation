@@ -9,7 +9,7 @@ class Cell:
     def __init__(self, eq_index, is_boundary_x=False, is_boundary_y=False):
         self.is_boundary_y = is_boundary_y
         self.is_boundary_x = is_boundary_x
-        self.cell_states = [CellState(), CellState()]#n, n + 1 layers
+        self.cell_states = [CellState(), CellState()]  # n, n + 1 layers
         self.eq_index = eq_index
 
         self.flow_array_x = np.array([Flow() for _ in range(Layer.components_count)], dtype=Flow)  # Поток минус(для oil и water) Поток плюс(для oil и water)

@@ -13,10 +13,6 @@ class CellState:
         self.s_oil_water = np.zeros(Layer.components_count)  # [S_oil, S_water]
         self.ro_oil_water = np.zeros(Layer.components_count)  # [ro_oil, ro_water]
         self.k_r_oil_water = np.zeros(Layer.components_count)  # [k_r_oil, k_r_water]
-
-        #self.t_minus_oil_water = np.zeros(Layer.components_count)  # [t_minus_oil, t_minus_water]
-        #self.t_plus_oil_water = np.zeros(Layer.components_count)  # [t_plus_oil, t_plus_water]
-
         self.fi = 0.0
 
         # TODO: Может перенести расчет этого говна в другое место
