@@ -46,10 +46,17 @@ class CellContainer:
         for state in cell.get_cell_states():
             state.set_s_water(Layer.s_water_init)
             state.set_s_oil(1.0 - Layer.s_water_init)
-            if cell.is_n_plus_state(state):
-                state.set_pressure_oil(Layer.pressure_oil_init + Layer.delta_0)
+            if cell.get_eq_index() != 93:
+                if cell.is_n_plus_state(state):
+                    state.set_pressure_oil(Layer.pressure_oil_init + Layer.delta_0)
+                else:
+                    state.set_pressure_oil(Layer.pressure_oil_init)
             else:
-                state.set_pressure_oil(Layer.pressure_oil_init)
+                if cell.is_n_plus_state(state):
+                    state.set_pressure_oil(Layer.pressure_oil_exc + Layer.delta_0)
+                else:
+                    state.set_pressure_oil(Layer.pressure_oil_exc)
+
             state.set_pressure_cap(Layer.count_pressure_cap(state.get_s_water()))
             state.set_pressure_water(state.get_pressure_oil() - state.get_pressure_cap())  # Отнимается от каждого элемента матрицы
 

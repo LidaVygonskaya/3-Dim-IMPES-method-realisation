@@ -13,8 +13,8 @@ cell_container = CellContainer()  # Проверь на счет eq_index. Вн�
 cell_container.initialize_cells()
 cell = cell_container.get_cell(3, 3, 3)
 
-cell_container.get_cell(3, 3, 3).get_cell_state_n().set_pressure_oil(200*101325)
-cell_container.get_cell(3, 3, 3).get_cell_state_n_plus().set_pressure_oil(200*101325 + 1000)
+#cell_container.get_cell(3, 3, 3).get_cell_state_n().set_pressure_oil(200*101325)
+#cell_container.get_cell(3, 3, 3).get_cell_state_n_plus().set_pressure_oil(200*101325 + 1000)
 
 cell_container.initialize_flows()
 Flow.initialize_flow(cell_container)
@@ -52,6 +52,14 @@ while time < impes.time_max:
     impes.recount_properties(cell_container)
     impes.count_cells_flows(cell_container)
     impes.update_saturation(cell_container)
+
+    f = open(f'govno_sat{counter}.txt', 'w')
+    for k in range(Layer.N_z):
+        for i in range(Layer.N_x):
+            for j in range(Layer.N_x):
+                cell = cell_container.get_cell(k, i, j)
+                f.write(str(cell.get_cell_state_n_plus().get_s_water()) + '\n')
+    f.close()
     impes.update_pressure_cap(cell_container)
 
     print(f'CURRENT TIME: {time / (impes.tau)} DAYS')

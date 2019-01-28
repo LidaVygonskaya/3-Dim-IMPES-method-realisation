@@ -1,9 +1,9 @@
 import numpy as np
 
-
 from CellState import CellState
 from Layer import Layer
 from Flow import Flow
+
 
 class Cell:
     def __init__(self, eq_index, is_boundary_x=False, is_boundary_y=False):

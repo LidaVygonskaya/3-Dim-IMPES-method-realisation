@@ -85,33 +85,58 @@ class ThreeDimOilWaterImpes:
 
     # TODO: реализовать функции подсчета коэффициентов
     def count_a(self, cell):
-        # Коэффициент в матрицу потоков берется просто как разность всех коэффициентов
-        # Здесь считается только то, что пойдет в матрицу потоков не от други кожффициентов
+        # TODO: Поменять коэффициент А везде
         state_n = cell.get_cell_state_n()
         state_n_plus = cell.get_cell_state_n_plus()
-        #p_cap_graph = cell.layer.count_pcap_graph()
-        #p_cap_der = cell.layer.count_p_cap_graph_der(p_cap_graph, state_n.get_s_water())
-        #ro_der = cell.layer.ro_water_0 * cell.layer.c_f_water
-        A = 1 # TODO: свериться. На самом деле помоему коэффициент не совесем такой
+        p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
+        ro_der = Layer.water.ro_water_0 * Layer.water.c_f_water
+        A = (state_n_plus.get_fi() * state_n_plus.get_ro_oil()) / (state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
         # Вот такой коэффициент
         coeff = A * self.count_c1_p(cell) + self.count_c2_p(cell)
         # TODO: set coefficients a_d similar as in filtration и пререписать c1_p и c2_p
         return coeff
 
-    def count_coefficient(self, flow, dim_string):
-        # TODO: реализовать одну функцию для подсчета всех коэффициентов
-        pass
+    def count_coefficient(self, flow, revert=False):
+        left_cell = flow.get_left_cell()
+        right_cell = flow.get_right_cell()
+
+        if not revert:
+            main_cell = right_cell
+            back_cell = left_cell
+            pressure_main = left_cell.get_cell_state_n_plus().get_pressure_oil()
+            pressure_back = right_cell.get_cell_state_n_plus().get_pressure_oil()
+        else:
+            main_cell = left_cell
+            back_cell = right_cell
+            pressure_main = right_cell.get_cell_state_n_plus().get_pressure_oil()
+            pressure_back = left_cell.get_cell_state_n_plus().get_pressure_oil()
+
+        if main_cell is None:
+            return 0
+
+        A = 1
+        coeff = A * flow.get_water_flow() + flow.get_oil_flow()
+        r_ost = -A * flow.get_water_flow() * (
+            main_cell.get_cell_state_n_plus().get_pressure_cap() - back_cell.get_cell_state_n_plus().get_pressure_cap())
+        self.solver_slau.add_nevyaz(main_cell.get_eq_index(), -r_ost - coeff * (pressure_main - pressure_back))
+        return coeff
 
     def count_b(self, flow):
-        # Плюсовый коэффициент
-        # Стоит в матрице на (x, y + Nx * Ny). P(i+1, j, k)
+        #========================== Стоит в матрице на (x, y + Nx * Ny). P(i+1, j, k) ==========================
         left_cell = flow.get_left_cell()
         right_cell = flow.get_right_cell()
         if right_cell is None:
             return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
-        A = 1
+
+        state_n = right_cell.get_cell_state_n()
+        state_n_plus = right_cell.get_cell_state_n_plus()
+        p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
+        ro_der = Layer.water.ro_water_0 * Layer.water.c_f_water
+        A = (state_n_plus.get_fi() * state_n_plus.get_ro_oil()) / (
+        state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
+
         b = A * flow.get_water_flow() + flow.get_oil_flow()
         r_ost = -A * flow.get_water_flow() * (
             right_cell.get_cell_state_n_plus().get_pressure_cap() - left_cell.get_cell_state_n_plus().get_pressure_cap())
@@ -119,14 +144,21 @@ class ThreeDimOilWaterImpes:
         return b
 
     def count_c(self, flow):
-        # Стоит в матрице на (x + Nx * Ny, y). P(i-1, j, k)
+        #========================== Стоит в матрице на (x + Nx * Ny, y). P(i-1, j, k) ===============================
         left_cell = flow.get_left_cell()
         right_cell = flow.get_right_cell()
         if left_cell is None:
             return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
-        A = 1
+
+        state_n = left_cell.get_cell_state_n()
+        state_n_plus = left_cell.get_cell_state_n_plus()
+        p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
+        ro_der = Layer.water.ro_water_0 * Layer.water.c_f_water
+        A = (state_n_plus.get_fi() * state_n_plus.get_ro_oil()) / (
+            state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
+
         c = A * flow.get_water_flow() + flow.get_oil_flow()
         r_ost = -A * flow.get_water_flow() * (
             left_cell.get_cell_state_n_plus().get_pressure_cap() - right_cell.get_cell_state_n_plus().get_pressure_cap())
@@ -134,14 +166,21 @@ class ThreeDimOilWaterImpes:
         return c
 
     def count_d(self, flow):
-        # Стоит в матрице на (x + Nx * Ny, y). P(i, j + 1, k)
+        #========================== Стоит в матрице на (x + Nx * Ny, y). P(i, j + 1, k) ==========================
         left_cell = flow.get_left_cell()
         right_cell = flow.get_right_cell()
         if right_cell is None:
             return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
-        A = 1
+
+        state_n = right_cell.get_cell_state_n()
+        state_n_plus = right_cell.get_cell_state_n_plus()
+        p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
+        ro_der = Layer.water.ro_water_0 * Layer.water.c_f_water
+        A = (state_n_plus.get_fi() * state_n_plus.get_ro_oil()) / (
+            state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
+
         d = A * flow.get_water_flow() + flow.get_oil_flow()
         r_ost = -A * flow.get_water_flow() * (
             right_cell.get_cell_state_n_plus().get_pressure_cap() - left_cell.get_cell_state_n_plus().get_pressure_cap())
@@ -149,13 +188,21 @@ class ThreeDimOilWaterImpes:
         return d
 
     def count_e(self, flow):
-        # Стоит в матрице на (x + Nx * Ny, y). P(i, j - 1, k)
+        #========================== Стоит в матрице на (x + Nx * Ny, y). P(i, j - 1, k) ==========================
         left_cell = flow.get_left_cell()
         right_cell = flow.get_right_cell()
-        A = 1
-        e = A * flow.get_water_flow() + flow.get_oil_flow()
+
         if left_cell is None:
             return 0
+
+        state_n = left_cell.get_cell_state_n()
+        state_n_plus = left_cell.get_cell_state_n_plus()
+        p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
+        ro_der = Layer.water.ro_water_0 * Layer.water.c_f_water
+        A = (state_n_plus.get_fi() * state_n_plus.get_ro_oil()) / (
+            state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
+
+        e = A * flow.get_water_flow() + flow.get_oil_flow()
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         r_ost = -A * flow.get_water_flow() * (
@@ -164,14 +211,21 @@ class ThreeDimOilWaterImpes:
         return e
 
     def count_g(self, flow):
-        # Стоит в матрице на (x + Nx * Ny, y). P(i, j, k + 1)
+        #========================== Стоит в матрице на (x + Nx * Ny, y). P(i, j, k + 1) ==========================
         left_cell = flow.get_left_cell()
         right_cell = flow.get_right_cell()
         if right_cell is None:
             return 0
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
-        A = 1
+
+        state_n = right_cell.get_cell_state_n()
+        state_n_plus = right_cell.get_cell_state_n_plus()
+        p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
+        ro_der = Layer.water.ro_water_0 * Layer.water.c_f_water
+        A = (state_n_plus.get_fi() * state_n_plus.get_ro_oil()) / (
+            state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
+
         g = A * flow.get_water_flow() + flow.get_oil_flow()
         r_ost = -A * flow.get_water_flow() * (
             right_cell.get_cell_state_n_plus().get_pressure_cap() - left_cell.get_cell_state_n_plus().get_pressure_cap())
@@ -179,12 +233,20 @@ class ThreeDimOilWaterImpes:
         return g
 
     def count_f(self, flow):
-        # Стоит в матрице на (x + Nx * Ny, y). P(i, j, k - 1)
+        #========================== Стоит в матрице на (x + Nx * Ny, y). P(i, j, k - 1) ==========================
         left_cell = flow.get_left_cell()
         right_cell = flow.get_right_cell()
         if left_cell is None:
             return 0
-        A = 1
+
+        state_n = left_cell.get_cell_state_n()
+        state_n_plus = left_cell.get_cell_state_n_plus()
+        p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
+        ro_der = Layer.water.ro_water_0 * Layer.water.c_f_water
+        A = (state_n_plus.get_fi() * state_n_plus.get_ro_oil()) / (
+            state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
+
+
         f = A * flow.get_water_flow() + flow.get_oil_flow()
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
@@ -209,8 +271,6 @@ class ThreeDimOilWaterImpes:
         for k in range(Layer.N_z):
             for i in range(Layer.N_x):
                 for j in range(Layer.N_y):
-                    #if i == 3 and k == 3 and j == 3:
-                    #    print("be")
                     cell = cell_container.get_cell(k, i, j)
                     pressure_n = cell.get_cell_state_n().get_pressure_oil()
                     pressure_n_plus = cell.get_cell_state_n_plus().get_pressure_oil()
@@ -227,12 +287,11 @@ class ThreeDimOilWaterImpes:
                     coeff_a_d = np.append(coeff_a_d, a_d)
                     coeff_a_d_nevyaz = np.append(coeff_a_d_nevyaz, a_d * (pressure_n_plus - pressure_n))
 
-        #TODO:добавляем в невязку
         # Невязка a_d
         self.solver_slau.add_vector_to_nevyaz(np.transpose([coeff_a_d_nevyaz]))
         # Невязка от ф
         a = - b - c - d - e - f - g - coeff_a_d
-        # TODO: откусить
+
         shift_Nx = self.solver_slau.get_shift_N_x()
         shift_Nxy = self.solver_slau.get_shift_N_xy()
 
@@ -267,10 +326,25 @@ class ThreeDimOilWaterImpes:
                     eq_index += 1
 
     def update_saturation(self, cell_container):
-        for k in range(Layer.N_z):
-            for i in range(Layer.N_x):
-                for j in range(Layer.N_y):
-                    # TODO: получать разные клетки по всем осям
+
+        def count_coeff_2(flow_plus, flow_minus):
+            right_state_plus = flow_plus.get_right_cell().get_cell_state_n_plus()
+            left_state_plus = flow_plus.get_left_cell().get_cell_state_n_plus()
+
+            right_state_minus = flow_minus.get_right_cell().get_cell_state_n_plus()
+            left_state_minus = flow_minus.get_left_cell().get_cell_state_n_plus()
+
+            coeff_2_part = flow_plus.get_water_flow() * (right_state_plus.get_pressure_oil() - left_state_plus.get_pressure_oil())\
+                           + flow_plus.get_water_flow() * (right_state_plus.get_pressure_cap() - left_state_plus.get_pressure_cap())\
+                           + flow_minus.get_water_flow() * (left_state_minus.get_pressure_oil() - right_state_minus.get_pressure_oil())\
+                           + flow_minus.get_water_flow() * (left_state_minus.get_pressure_cap() - right_state_minus.get_pressure_cap())
+
+            return coeff_2_part
+
+        for k in range(1, Layer.N_z - 1):
+            for i in range(1, Layer.N_x - 1):
+                for j in range(1, Layer.N_y - 1):
+                    #==================== Все значения для воды ========================
                     cell = cell_container.get_cell(k, i, j)
                     flow_x_plus = cell.get_flow_coefficient('x', FlowComponents.plus.value)
                     flow_x_minus = cell.get_flow_coefficient('x', FlowComponents.minus.value)
@@ -281,15 +355,6 @@ class ThreeDimOilWaterImpes:
                     flow_z_plus = cell.get_flow_coefficient('z', FlowComponents.plus.value)
                     flow_z_minus = cell.get_flow_coefficient('z', FlowComponents.minus.value)
 
-                    cell_x_plus = cell_container.get_cell(k, i + 1, j)
-                    cell_x_minus = cell_container.get_cell(k, i - 1, j)
-
-                    cell_y_plus = cell_container.get_cell(k, i, j + 1)
-                    cell_y_minus = cell_container.get_cell(k, i, j - 1)
-
-                    cell_z_plus = cell_container.get_cell(k + 1, i, j)
-                    cell_z_minus = cell_container.get_cell(k - 1, i, j)
-
                     state_n = cell.get_cell_state_n()
                     state_n_plus = cell.get_cell_state_n_plus()
                     #================ water ================
@@ -299,12 +364,13 @@ class ThreeDimOilWaterImpes:
 
                     p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
 
+                    #================ коэффициенты d ===============
                     d_11 = (1.0 / self.tau) * state_n.get_s_water() * (
                     state_n.get_fi() * ro_der + fi_der * state_n_plus.get_ro_water())
                     d_12 = (1.0 / self.tau) * (
-                    state_n_plus.get_fi() * state_n_plus.get_ro_water() - ro_der * state_n.get_s_water() * state_n.get_ro_water() * p_cap_der)
+                    state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
 
-                    coeff_2 = 0
+                    coeff_2 = count_coeff_2(flow_x_plus, flow_x_minus) + count_coeff_2(flow_y_plus, flow_y_minus) + count_coeff_2(flow_z_plus, flow_z_minus)
 
                     coeff_3 = -(d_11 / d_12) * (state_n_plus.get_pressure_oil() - state_n.get_pressure_oil())
 
@@ -313,14 +379,11 @@ class ThreeDimOilWaterImpes:
                     state_n_plus.set_s_water(s_water_new)
                     state_n_plus.set_s_oil(1.0 - s_water_new)
 
-    # TODO: ты чето тут сломала посмотри
     def update_pressure_cap(self, cell_container):
         for k in range(1, Layer.N_z - 1):
             for i in range(1, Layer.N_x - 1):
                 for j in range(1, Layer.N_y - 1):
-                    directions = ['x', 'y', 'z']
                     cell = cell_container.get_cell(k, i, j)
-
                     s_water = cell.get_cell_state_n_plus().get_s_water()
                     p_cap = Layer.count_pressure_cap(s_water)
                     cell.get_cell_state_n_plus().set_pressure_cap(p_cap)

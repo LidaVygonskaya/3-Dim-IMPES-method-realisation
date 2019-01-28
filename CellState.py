@@ -15,12 +15,6 @@ class CellState:
         self.k_r_oil_water = np.zeros(Layer.components_count)  # [k_r_oil, k_r_water]
         self.fi = 0.0
 
-        # TODO: Может перенести расчет этого говна в другое место
-        self.c1_p = 0.0
-        self.c2_p = 0.0
-
-
-
     #Getters
     def get_pressure_oil(self):
         return self.pressure_oil_water[Components.OIL.value]  # Вернет конкретно значение
@@ -64,13 +58,6 @@ class CellState:
     def get_fi(self):
         return self.fi
 
-    def get_c1_p(self):
-        pass
-
-    def get_c2_p(self):
-        pass
-
-
     #Setters
     # Здесь устанавливаем значение тупо по значениям
     def set_pressure_oil(self, pressure_oil):
@@ -103,15 +90,6 @@ class CellState:
     def set_pressure_cap(self, pressure_cap):
         self.pressure_cap = pressure_cap
 
-
-    # TODO : Перенести данные коэффициенты
-    def set_c1_p(self, c1_p):
-        self.c1_p = c1_p
-
-    def set_c2_p(self, c2_p):
-        self.c2_p = c2_p
-
-
     #Set n to n plus 1
     def set_equals_to(self, cell_state_new):
         self.pressure_oil_water[Components.OIL.value] = cell_state_new.pressure_oil_water[Components.OIL.value]
@@ -124,7 +102,3 @@ class CellState:
         self.k_r_oil_water[Components.OIL.value] = cell_state_new.k_r_oil_water[Components.OIL.value]
         self.k_r_oil_water[Components.WATER.value] = cell_state_new.k_r_oil_water[Components.WATER.value]
         self.fi = cell_state_new.fi
-
-        # TODO: Перенести данные вещи в построение матрицы
-        self.c1_p = cell_state_new.c1_p
-        self.c2_p = cell_state_new.c2_p

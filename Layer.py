@@ -27,9 +27,10 @@ class Layer:
     h_z = (x_N - x_0) / (N_z - 1)
     h_array = [h_x, h_y, h_z]
 
-    s_water_init = 0.0  # Начальная насыщенность воды
+    s_water_init = 0.1  # Начальная насыщенность воды
     s_oil_init = 1.0  # Начальная насыщенность нефти. Вычисляем через воду конечно, но пусть будет на всякий
 
+    pressure_oil_exc = 100 * atm
     pressure_oil_init = 80 * atm  # Начальное давление нефти
     pressure_water_init = 80 * atm  # Начальное давление воды. Вычисляется через капилярку, но пусть будет на всякий
 
@@ -46,7 +47,7 @@ class Layer:
     k_z = k
     k_array = [k_x, k_y, k_z]
     mu_oil = 10.0 * (10.0 ** (-3))
-    mu_water = 10.0 ** (-3)
+    mu_water = 10.0 * (10.0 ** (-3))
     mu_oil_water = [mu_oil, mu_water]
     oil = Oil()
     water = Water()
@@ -99,5 +100,5 @@ class Layer:
         return p_cap_der
 
     @classmethod
-    def count_fi(cls,pressure_oil):
+    def count_fi(cls, pressure_oil):
         return cls.fi_0 * (1.0 + cls.c_r * (pressure_oil - cls.P_01))
