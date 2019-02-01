@@ -3,14 +3,17 @@ import numpy as np
 from CellState import CellState
 from Layer import Layer
 from Flow import Flow
+from Well import Well
 
 
 class Cell:
-    def __init__(self, eq_index, is_boundary_x=False, is_boundary_y=False):
+    def __init__(self, eq_index, is_boundary_x=False, is_boundary_y=False, has_well=False):
         self.is_boundary_y = is_boundary_y
         self.is_boundary_x = is_boundary_x
         self.cell_states = [CellState(), CellState()]  # n, n + 1 layers
         self.eq_index = eq_index
+        self.has_well = has_well
+        self.well = Well() if has_well else None
 
         self.flow_array_x = np.array([Flow() for _ in range(Layer.components_count)], dtype=Flow)  # Поток минус(для oil и water) Поток плюс(для oil и water)
         self.flow_array_y = np.array([Flow() for _ in range(Layer.components_count)], dtype=Flow)
@@ -21,20 +24,6 @@ class Cell:
             return True
         else:
             return False
-
-    def is_boundary_cell_y(self):
-        """
-        Проверяет является ли клетка граничной
-        :return: True - если клетка граничная. False - если нет
-        """
-        return self.is_boundary_y
-
-    def is_boundary_cell_x(self):
-        """
-        Проверяет является ли клетка граничной
-        :return: True - если клетка граничная. False - если нет
-        """
-        return self.is_boundary_x
 
     def get_flow(self, direction):
         if direction == 'x':

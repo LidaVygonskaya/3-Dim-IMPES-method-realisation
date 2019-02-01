@@ -2,7 +2,7 @@ import numpy as np
 from scipy.sparse import diags
 
 from Layer import Layer
-from Enums import FlowComponents
+from Enums import FlowComponents, Components
 
 
 class ThreeDimOilWaterImpes:
@@ -89,12 +89,32 @@ class ThreeDimOilWaterImpes:
         state_n = cell.get_cell_state_n()
         state_n_plus = cell.get_cell_state_n_plus()
         p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
-        ro_der = Layer.water.ro_water_0 * Layer.water.c_f_water
+        #ro_der = Layer.water.ro_water_0 * Layer.water.c_f_water
         A = (state_n_plus.get_fi() * state_n_plus.get_ro_oil()) / (state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
         # Вот такой коэффициент
         coeff = A * self.count_c1_p(cell) + self.count_c2_p(cell)
         # TODO: set coefficients a_d similar as in filtration и пререписать c1_p и c2_p
         return coeff
+
+    def count_well_addition(self, cell, water=False):
+        """
+        Добавка к коэффициентам от скважинки
+        :param cell:
+        :return:
+        """
+        if cell.has_well:
+            well_index = cell.well.well_index_oil_water
+            if water:
+                state_n = cell.get_cell_state_n()
+                state_n_plus = cell.get_cell_state_n_plus()
+                p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
+                A = (state_n_plus.get_fi() * state_n_plus.get_ro_oil()) / (
+                    state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
+                return A * well_index[Components.WATER.value]
+            else:
+                return well_index[Components.OIL.value]
+        else:
+            return 0
 
     def count_coefficient(self, flow, revert=False):
         left_cell = flow.get_left_cell()
@@ -256,8 +276,6 @@ class ThreeDimOilWaterImpes:
         return f
 
     def generate_matrix(self, cell_container):
-        # TODO: Собственно сгенерировать всю матрицу. Ну которая семидиагональная ага да
-        # TODO: Посчитать коэффициент a
         matrix_size = Layer.N_x * Layer.N_y * Layer.N_z
         b = np.empty((0, matrix_size))  # Плюсовый
         c = np.empty((0, matrix_size))  # Минусовый
@@ -265,8 +283,11 @@ class ThreeDimOilWaterImpes:
         e = np.empty((0, matrix_size))  # Минусовый
         g = np.empty((0, matrix_size))  # Плюсовый
         f = np.empty((0, matrix_size))  # Минусовый
+        well_addition_oil = np.empty((0, matrix_size))
+        well_addition_water = np.empty((0, matrix_size))
         coeff_a_d = np.empty((0, matrix_size))
         coeff_a_d_nevyaz = np.empty((0, matrix_size))
+        coeff_well_nevyaz = np.empty((0, matrix_size))
 
         for k in range(Layer.N_z):
             for i in range(Layer.N_x):
@@ -274,6 +295,7 @@ class ThreeDimOilWaterImpes:
                     cell = cell_container.get_cell(k, i, j)
                     pressure_n = cell.get_cell_state_n().get_pressure_oil()
                     pressure_n_plus = cell.get_cell_state_n_plus().get_pressure_oil()
+                    pressure_cap_n = cell.get_cell_state_n().get_pressure_cap()
 
                     b = np.append(b, self.count_b(cell.get_flow_coefficient('x', FlowComponents.plus.value)))  # Откусываем большой сдвиг с конца
                     c = np.append(c, self.count_c(cell.get_flow_coefficient('x', FlowComponents.minus.value)))  # Откусываем большой сдвиг с начала
@@ -283,14 +305,24 @@ class ThreeDimOilWaterImpes:
                     f = np.append(f, self.count_f(cell.get_flow_coefficient('z', FlowComponents.minus.value)))  # Остается неизменным сдвиг -1
 
                     # Добавляем в середину
+                    well_oil = self.count_well_addition(cell)
+                    well_water = self.count_well_addition(cell, water=True)
+                    well_addition_oil = np.append(well_addition_oil, well_oil)  # Water False
+                    well_addition_water = np.append(well_addition_water, well_water)
+
+                    p_well = cell.well.p_well if cell.has_well else 0
+                    well_nevyaz = well_oil * (pressure_n_plus - p_well) + well_water * (pressure_n_plus - pressure_cap_n - p_well)
+                    coeff_well_nevyaz = np.append(coeff_well_nevyaz, well_nevyaz)
+
                     a_d = self.count_a(cell)
                     coeff_a_d = np.append(coeff_a_d, a_d)
                     coeff_a_d_nevyaz = np.append(coeff_a_d_nevyaz, a_d * (pressure_n_plus - pressure_n))
 
         # Невязка a_d
         self.solver_slau.add_vector_to_nevyaz(np.transpose([coeff_a_d_nevyaz]))
-        # Невязка от ф
-        a = - b - c - d - e - f - g - coeff_a_d
+        self.solver_slau.add_vector_to_nevyaz(np.transpose([coeff_well_nevyaz]))
+
+        a = - b - c - d - e - f - g - coeff_a_d - well_addition_oil - well_addition_water
 
         shift_Nx = self.solver_slau.get_shift_N_x()
         shift_Nxy = self.solver_slau.get_shift_N_xy()

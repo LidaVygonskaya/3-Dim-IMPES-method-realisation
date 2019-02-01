@@ -16,7 +16,6 @@ cell = cell_container.get_cell(3, 3, 3)
 #cell_container.get_cell(3, 3, 3).get_cell_state_n().set_pressure_oil(200*101325)
 #cell_container.get_cell(3, 3, 3).get_cell_state_n_plus().set_pressure_oil(200*101325 + 1000)
 
-cell_container.initialize_flows()
 Flow.initialize_flow(cell_container)
 
 time = impes.tau  # Сразу обозначим это как первый шаг по времени, потому что нулевой у нас есть

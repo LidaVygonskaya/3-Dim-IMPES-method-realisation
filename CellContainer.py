@@ -11,17 +11,8 @@ class CellContainer:
         for k in range(Layer.N_z):
             for i in range(Layer.N_x):
                 for j in range(Layer.N_y):
-                    # TODO: Проверить действительно ли надо использовать такой номер уравнения
-                    # TODO: только в местах где потоки выходят из куба нулевая проводимость. Надо их как то выделить
-                    # Проверяем является ли клетка граничной, если да, то ставим, что она граничная
-                    if j == 0 or j == Layer.N_y - 1:
-                        if i == 0 or i == Layer.N_x - 1:
-                            self.container[k, i, j] = Cell(eq_index, is_boundary_x=True, is_boundary_y=True)
-                        else:
-                            self.container[k, i, j] = Cell(eq_index, is_boundary_y=True)
-
-                    elif i == 0 or i == Layer.N_x - 1:
-                        self.container[k, i, j] = Cell(eq_index, is_boundary_x=True)
+                    if self.is_well_cell(k, i, j):
+                        self.container[k, i, j] = Cell(eq_index, has_well=True)
                     else:
                         self.container[k, i, j] = Cell(eq_index)
                     eq_index += 1
@@ -29,34 +20,24 @@ class CellContainer:
     def get_cells(self):
         return self.container
 
+    def is_well_cell(self, k, i, j):
+        if k == Layer.well_index_z and i == Layer.well_index_x and j == Layer.well_index_y:
+            return True
+        else:
+            return False
+
     def get_cell(self, k, i, j):
         return self.container[k, i, j]
-
-    def initialize_flow(self, cell):
-
-        # TODO: initialize flow in one cell
-        pass
-
-    def initialize_flows(self):
-        # TODO: initialize all flows
-        pass
 
     @staticmethod
     def initialize_cell(cell):
         for state in cell.get_cell_states():
             state.set_s_water(Layer.s_water_init)
             state.set_s_oil(1.0 - Layer.s_water_init)
-            if cell.get_eq_index() != 93:
-                if cell.is_n_plus_state(state):
-                    state.set_pressure_oil(Layer.pressure_oil_init + Layer.delta_0)
-                else:
-                    state.set_pressure_oil(Layer.pressure_oil_init)
+            if cell.is_n_plus_state(state):
+                state.set_pressure_oil(Layer.pressure_oil_init + Layer.delta_0)
             else:
-                if cell.is_n_plus_state(state):
-                    state.set_pressure_oil(Layer.pressure_oil_exc + Layer.delta_0)
-                else:
-                    state.set_pressure_oil(Layer.pressure_oil_exc)
-
+                state.set_pressure_oil(Layer.pressure_oil_init)
             state.set_pressure_cap(Layer.count_pressure_cap(state.get_s_water()))
             state.set_pressure_water(state.get_pressure_oil() - state.get_pressure_cap())  # Отнимается от каждого элемента матрицы
 
