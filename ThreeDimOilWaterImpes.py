@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from scipy.sparse import diags
 
 from Layer import Layer
@@ -7,7 +8,7 @@ from Enums import FlowComponents, Components
 
 class ThreeDimOilWaterImpes:
     def __init__(self, solver_slau):
-        self.tau_default = 8640.0
+        self.tau_default = 86400
         self.tau = self.tau_default
         self.time_max = self.tau_default * 365
         self.delta_0 = 1000  # Начальное приближение, на которое отличаются давления
@@ -44,6 +45,8 @@ class ThreeDimOilWaterImpes:
                         cell_state_n_plus.set_k_r(k_r, component_index)
                     fi = Layer.count_fi(cell_state_n_plus.get_pressure_oil())
                     cell_state_n_plus.set_fi(fi)
+                    if cell.has_well:
+                        cell.well.count_well_index()
 
     @staticmethod
     def count_flows(flows):
@@ -105,15 +108,13 @@ class ThreeDimOilWaterImpes:
         :return:
         """
         if cell.has_well:
-            well = cell.well
             well_index = cell.well.well_index_oil_water
             if water:
                 state_n = cell.get_cell_state_n()
                 state_n_plus = cell.get_cell_state_n_plus()
-                #p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
-                p_cap_der = Layer.count_p_cap_graph_der(well.s_well_water)
+                p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
                 A = (state_n_plus.get_fi() * state_n_plus.get_ro_oil()) / (
-                    state_n_plus.get_fi() * state_n_plus.get_ro_water() - well.s_well_water * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
+                    state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
                 return A * well_index[Components.WATER.value]
             else:
                 return well_index[Components.OIL.value]
@@ -426,5 +427,16 @@ class ThreeDimOilWaterImpes:
                     cell.get_cell_state_n_plus().set_pressure_cap(p_cap)
 
     def check_pressure_convergence(self, cell_container, delta_k):
-        # TODO: Проверить сходимость по давлению не факт что оно нужно
-        pass
+        conv = []
+        for k in range(Layer.N_z):
+            for i in range(Layer.N_x):
+                for j in range(Layer.N_y):
+                    cell = cell_container.get_cell(k, i, j)
+                    pressure_oil = cell.get_cell_state_n_plus().get_pressure_oil()
+                    conv.append(delta_k[cell.get_eq_index()] / pressure_oil)
+        norm = self.count_norm(delta_k)
+        if self.count_norm(delta_k) > 0.1:
+            print(f'Pressure norm {norm} > 10%')
+            return True
+        else:
+            return False

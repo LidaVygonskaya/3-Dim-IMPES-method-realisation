@@ -1,20 +1,14 @@
-import numpy as np
-
-from Layer import Layer
-from ThreeDimOilWaterImpes import ThreeDimOilWaterImpes
 from CellContainer import CellContainer
 from Flow import Flow
+from Layer import Layer
 from SolverSlau import SolverSlau
+from ThreeDimOilWaterImpes import ThreeDimOilWaterImpes
 
 solver_slau = SolverSlau()
 impes = ThreeDimOilWaterImpes(solver_slau)
 
 cell_container = CellContainer()  # Проверь на счет eq_index. Внутри реализации написано чо каво
 cell_container.initialize_cells()
-cell = cell_container.get_cell(3, 3, 3)
-
-#cell_container.get_cell(3, 3, 3).get_cell_state_n().set_pressure_oil(200*101325)
-#cell_container.get_cell(3, 3, 3).get_cell_state_n_plus().set_pressure_oil(200*101325 + 1000)
 
 Flow.initialize_flow(cell_container)
 
@@ -37,9 +31,18 @@ while time < impes.time_max:
         impes.solve_slau()
         delta_k = impes.solver_slau.get_result()
         impes.solver_slau.clear_result()
-        impes.update_pressure(cell_container, delta_k)
 
-    if counter % 100 == 0:
+        if impes.check_pressure_convergence(cell_container, delta_k):
+            impes.tau = impes.tau / 2.0
+            for k in range(Layer.N_z):
+                for i in range(Layer.N_x):
+                    for j in range(Layer.N_y):
+                        cell = cell_container.get_cell(k, i, j)
+                        cell.get_cell_state_n_plus().set_equals_to(cell.get_cell_state_n())
+        else:
+            impes.update_pressure(cell_container, delta_k)
+
+    if counter % 10 == 0:
         f = open(f'govno{counter}.txt', 'w')
         for k in range(Layer.N_z):
             for i in range(Layer.N_x):
@@ -51,16 +54,21 @@ while time < impes.time_max:
     impes.recount_properties(cell_container)
     impes.count_cells_flows(cell_container)
     impes.update_saturation(cell_container)
-
-    f = open(f'govno_sat{counter}.txt', 'w')
-    for k in range(Layer.N_z):
-        for i in range(Layer.N_x):
-            for j in range(Layer.N_x):
-                cell = cell_container.get_cell(k, i, j)
-                f.write(str(cell.get_cell_state_n_plus().get_s_water()) + '\n')
-    f.close()
     impes.update_pressure_cap(cell_container)
 
-    print(f'CURRENT TIME: {time / (impes.tau)} DAYS')
+    print(f'CURRENT TIME: {time / impes.tau} DAYS')
     time += impes.tau
+    impes.tau = min(impes.tau * 2.0, impes.tau_default)
+    print(f'TIMESTEP: {impes.tau}')
     counter += 1
+
+
+"""
+f = open(f'govno_sat{counter}.txt', 'w')
+for k in range(Layer.N_z):
+    for i in range(Layer.N_x):
+        for j in range(Layer.N_x):
+            cell = cell_container.get_cell(k, i, j)
+            f.write(str(cell.get_cell_state_n_plus().get_s_water()) + '\n')
+f.close()
+"""
