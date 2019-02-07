@@ -6,6 +6,7 @@ from Oil import Oil
 from Water import Water
 from Enums import Components
 
+
 class Well:
     def __init__(self):
         extractive = self.define_well_type()
@@ -26,8 +27,8 @@ class Well:
         k_r_water = Water.count_k_r(self.s_well_water)
         well_oil = 2.0 * math.pi * k * Layer.h_z * k_r_oil / (math.log(re / self.r_well) * Layer.mu_oil)
         well_water = 2.0 * math.pi * k * Layer.h_z * k_r_water / (math.log(re / self.r_well) * Layer.mu_water)
-        self.well_index_oil_water[Components.OIL.value] = well_oil
-        self.well_index_oil_water[Components.WATER.value] = well_water
+        self.well_index_oil_water[Components.OIL.value] = well_oil / Layer.V_ijk
+        self.well_index_oil_water[Components.WATER.value] = well_water / Layer.V_ijk
 
     def count_k(self):
         return math.sqrt(Layer.k_x * Layer.k_y)
@@ -38,6 +39,7 @@ class Well:
         return 0.28 * math.sqrt(nominator) / denominator
 
     def define_well_type(self):
+        # TODO: дописать эту функцию
         extractive = False
         p_average = Layer.pressure_water_init * Layer.s_water_init + Layer.pressure_oil_init * Layer.s_oil_init
         return extractive

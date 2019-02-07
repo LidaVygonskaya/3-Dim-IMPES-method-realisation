@@ -7,7 +7,7 @@ from Enums import FlowComponents, Components
 
 class ThreeDimOilWaterImpes:
     def __init__(self, solver_slau):
-        self.tau_default = 86400
+        self.tau_default = 8640.0
         self.tau = self.tau_default
         self.time_max = self.tau_default * 365
         self.delta_0 = 1000  # Начальное приближение, на которое отличаются давления
@@ -97,19 +97,23 @@ class ThreeDimOilWaterImpes:
         return coeff
 
     def count_well_addition(self, cell, water=False):
+        # TODO: посмотреть для нагнетательной скавжины насыщенность и откуда она берется
+        # TODO: оно должно браться из класса скважины
         """
         Добавка к коэффициентам от скважинки
         :param cell:
         :return:
         """
         if cell.has_well:
+            well = cell.well
             well_index = cell.well.well_index_oil_water
             if water:
                 state_n = cell.get_cell_state_n()
                 state_n_plus = cell.get_cell_state_n_plus()
-                p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
+                #p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
+                p_cap_der = Layer.count_p_cap_graph_der(well.s_well_water)
                 A = (state_n_plus.get_fi() * state_n_plus.get_ro_oil()) / (
-                    state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
+                    state_n_plus.get_fi() * state_n_plus.get_ro_water() - well.s_well_water * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
                 return A * well_index[Components.WATER.value]
             else:
                 return well_index[Components.OIL.value]
@@ -310,6 +314,7 @@ class ThreeDimOilWaterImpes:
                     well_addition_oil = np.append(well_addition_oil, well_oil)  # Water False
                     well_addition_water = np.append(well_addition_water, well_water)
 
+                    # TODO: спросить какое давление капплярное сюда пихать
                     p_well = cell.well.p_well if cell.has_well else 0
                     well_nevyaz = well_oil * (pressure_n_plus - p_well) + well_water * (pressure_n_plus - pressure_cap_n - p_well)
                     coeff_well_nevyaz = np.append(coeff_well_nevyaz, well_nevyaz)
