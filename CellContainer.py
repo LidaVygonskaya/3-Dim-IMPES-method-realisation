@@ -21,7 +21,7 @@ class CellContainer:
         return self.container
 
     def is_well_cell(self, k, i, j):
-        if k == Layer.well_index_z and i == Layer.well_index_x and j == Layer.well_index_y:
+        if (k, i, j) in Layer.wells:
             return True
         else:
             return False

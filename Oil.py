@@ -1,14 +1,16 @@
 class Oil:
     atm = 101325.0
     P_02 = 80 * atm
+    ro_oil_0 = 1000.0
+    c_f_oil = (10.0 ** (-4)) / atm
 
     def __init__(self):
-        # TODO: изменить значение P_02
         self.ro_oil_0 = 1000.0
         self.c_f_oil = (10.0 ** (-4)) / Oil.atm
 
-    def count_ro(self, pressure_oil):
-        return self.ro_oil_0 * (1.0 + self.c_f_oil * (pressure_oil - Oil.P_02))
+    @staticmethod
+    def count_ro(pressure_oil):
+        return Oil.ro_oil_0 * (1.0 + Oil.c_f_oil * (pressure_oil - Oil.P_02))
 
     @staticmethod
     def count_k_r(s_oil):

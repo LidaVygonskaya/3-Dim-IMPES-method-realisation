@@ -28,10 +28,9 @@ class Layer:
     h_array = [h_x, h_y, h_z]
     V_ijk = h_x * h_y * h_z
 
-    s_water_init = 0.1  # Начальная насыщенность воды
-    s_oil_init = 1.0  # Начальная насыщенность нефти. Вычисляем через воду конечно, но пусть будет на всякий
+    s_water_init = 0.5  # Начальная насыщенность воды
+    s_oil_init = 1.0 - s_water_init  # Начальная насыщенность нефти. Вычисляем через воду конечно, но пусть будет на всякий
 
-    pressure_oil_exc = 100 * atm
     pressure_oil_init = 80 * atm  # Начальное давление нефти
     pressure_water_init = 80 * atm  # Начальное давление воды. Вычисляется через капилярку, но пусть будет на всякий
 
@@ -57,8 +56,8 @@ class Layer:
     delta_0 = 1000.0  # Начальная прибавка по давлению в паскалях
 
     # ========================== Скважинка ===========================
-    P_well_delivery = 130 * atm
-    P_well_extractive = 30 * atm
+    P_well_delivery = 130 * atm  # injection
+    P_well_extractive = 30 * atm  # production
     r_well = 0.108
     s_well_water = 1.0
     s_well_oil = 1.0 - s_well_water
@@ -67,6 +66,9 @@ class Layer:
     well_index_x = 2
     well_index_y = 2
     well_index_z = 2
+    wells = [(2, 2, 2)]
+
+    productive = False
     # ================================================================
     @staticmethod
     def get_h(direction):

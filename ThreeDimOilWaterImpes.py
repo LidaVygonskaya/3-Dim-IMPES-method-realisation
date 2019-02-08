@@ -10,7 +10,7 @@ class ThreeDimOilWaterImpes:
     def __init__(self, solver_slau):
         self.tau_default = 86400
         self.tau = self.tau_default
-        self.time_max = self.tau_default * 365
+        self.time_max = self.tau_default * 36500
         self.delta_0 = 1000  # Начальное приближение, на которое отличаются давления
         self.delta_max = 10 ** (-3)
         self.solver_slau = solver_slau
@@ -46,7 +46,7 @@ class ThreeDimOilWaterImpes:
                     fi = Layer.count_fi(cell_state_n_plus.get_pressure_oil())
                     cell_state_n_plus.set_fi(fi)
                     if cell.has_well:
-                        cell.well.count_well_index()
+                        cell.well.count_well_index(cell)
 
     @staticmethod
     def count_flows(flows):
@@ -359,8 +359,10 @@ class ThreeDimOilWaterImpes:
                 for j in range(Layer.N_y):
                     cell = cell_container.get_cell(k, i, j)
                     state_n_plus = cell.get_cell_state_n_plus()
+                    a = state_n_plus.get_pressure_oil() + delta_k[eq_index]
+                    b = state_n_plus.get_pressure_oil() - state_n_plus.get_pressure_cap()
                     state_n_plus.set_pressure_oil(state_n_plus.get_pressure_oil() + delta_k[eq_index])
-                    state_n_plus.set_pressure_water(state_n_plus.get_pressure_water() - state_n_plus.get_pressure_cap())
+                    state_n_plus.set_pressure_water(state_n_plus.get_pressure_oil() - state_n_plus.get_pressure_cap())
                     eq_index += 1
 
     def update_saturation(self, cell_container):
@@ -401,6 +403,7 @@ class ThreeDimOilWaterImpes:
                     fi_der = Layer.fi_0 * Layer.c_r
 
                     p_cap_der = Layer.count_p_cap_graph_der(state_n.get_s_water())
+                    pressure_water = state_n_plus.get_pressure_water()
 
                     #================ коэффициенты d ===============
                     d_11 = (1.0 / self.tau) * state_n.get_s_water() * (
@@ -413,7 +416,8 @@ class ThreeDimOilWaterImpes:
                     coeff_3 = -(d_11 / d_12) * (state_n_plus.get_pressure_oil() - state_n.get_pressure_oil())
 
                     s_water_new = state_n.get_s_water() + (1.0 / d_12) * coeff_2 + coeff_3
-
+                    if cell.has_well:
+                        s_water_new = s_water_new - (1.0 / d_12) * cell.well.get_water_well_index() * (pressure_water - cell.well.p_well)
                     state_n_plus.set_s_water(s_water_new)
                     state_n_plus.set_s_oil(1.0 - s_water_new)
 
@@ -440,3 +444,8 @@ class ThreeDimOilWaterImpes:
             return True
         else:
             return False
+
+    def count_debit(self, cell_container):
+        for well_index in Layer.wells:
+            cell = cell_container.get_cell(well_index[0], well_index[1], well_index[2])
+            pressure = cell.get_cell_state_n_plus().get_pressure_water()
