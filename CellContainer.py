@@ -11,10 +11,11 @@ class CellContainer:
         for k in range(Layer.N_z):
             for i in range(Layer.N_x):
                 for j in range(Layer.N_y):
+                    z_coordinate = k * Layer.h_z
                     if self.is_well_cell(k, i, j):
-                        self.container[k, i, j] = Cell(eq_index, has_well=True)
+                        self.container[k, i, j] = Cell(eq_index, z_coordinate, has_well=True, well_index=(k, i, j))
                     else:
-                        self.container[k, i, j] = Cell(eq_index)
+                        self.container[k, i, j] = Cell(eq_index, z_coordinate)
                     eq_index += 1
 
     def get_cells(self):

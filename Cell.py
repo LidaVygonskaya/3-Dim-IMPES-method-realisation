@@ -7,13 +7,14 @@ from Well import Well
 
 
 class Cell:
-    def __init__(self, eq_index, is_boundary_x=False, is_boundary_y=False, has_well=False):
+    def __init__(self, eq_index, z_coordinate, is_boundary_x=False, is_boundary_y=False, has_well=False, well_index=None):
         self.is_boundary_y = is_boundary_y
         self.is_boundary_x = is_boundary_x
         self.cell_states = [CellState(), CellState()]  # n, n + 1 layers
         self.eq_index = eq_index
         self.has_well = has_well
-        self.well = Well(self) if has_well else None
+        self.well = Well(self, well_index) if has_well else None
+        self.z_coordinate = z_coordinate
 
         self.flow_array_x = np.array([Flow() for _ in range(Layer.components_count)], dtype=Flow)  # Поток минус(для oil и water) Поток плюс(для oil и water)
         self.flow_array_y = np.array([Flow() for _ in range(Layer.components_count)], dtype=Flow)

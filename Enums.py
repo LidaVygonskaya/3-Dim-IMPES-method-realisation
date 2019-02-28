@@ -20,3 +20,8 @@ class Dim(Enum):
 class FlowCell(Enum):
     left_cell = 'left_cell'
     right_cell = 'right_cell'
+
+
+class Boundary(Enum):
+    EDGE = 1
+    BOUNDARY = 2

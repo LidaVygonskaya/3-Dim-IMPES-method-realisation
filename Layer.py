@@ -6,25 +6,28 @@ from Water import Water
 
 class Layer:
     atm = 101325.0
+    g = 9.80665
     p_cap_filename = 'Pcap(Sw).txt'
 
     components_count = 2  # Количество компонент
     dim = 3  # Размерность пространства
 
     # Количество ячеек
-    N_x = 5
-    N_y = 5
-    N_z = 5
+    N_x = 20
+    N_y = 20
+    N_z = 20
 
     # Координаты и шаги
     # TODO: По разной координатной оси разный шаг по пространству
     # TODO: Сейчас пока что у тебя один шаг. Надо будет все поменять
     x_0 = 0.0
-    x_N = 100.0
+    x_N = 200.0
+    y_N = 200.0
+    z_N = 20.0
     h = (x_N - x_0) / (N_x - 1)
     h_x = (x_N - x_0) / (N_x - 1)
-    h_y = (x_N - x_0) / (N_y - 1)
-    h_z = (x_N - x_0) / (N_z - 1)
+    h_y = (y_N - x_0) / (N_y - 1)
+    h_z = (z_N - x_0) / (N_z - 1)
     h_array = [h_x, h_y, h_z]
     V_ijk = h_x * h_y * h_z
 
@@ -66,7 +69,7 @@ class Layer:
     well_index_x = 2
     well_index_y = 2
     well_index_z = 2
-    wells = [(2, 2, 2)]
+    wells = [(10, 10, 10)]  # [(2, 2, 2)]
 
     productive = False
     # ================================================================

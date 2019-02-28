@@ -64,7 +64,6 @@ while time < impes.time_max:
             print("be")
         else:
         """
-        print("govno")
         impes.update_pressure(cell_container, delta_k)
 
     if counter % 10 == 0:

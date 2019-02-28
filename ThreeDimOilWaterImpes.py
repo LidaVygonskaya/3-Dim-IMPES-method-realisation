@@ -46,7 +46,7 @@ class ThreeDimOilWaterImpes:
                     fi = Layer.count_fi(cell_state_n_plus.get_pressure_oil())
                     cell_state_n_plus.set_fi(fi)
                     if cell.has_well:
-                        cell.well.count_well_index(cell)
+                        cell.well.count_well_index(cell, (k, i, j))
 
     @staticmethod
     def count_flows(flows):
@@ -252,9 +252,24 @@ class ThreeDimOilWaterImpes:
             state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
 
         g = A * flow.get_water_flow() + flow.get_oil_flow()
+        if Layer.s_water_init != 0.0:
+            gamma_water = (state_n_plus.get_s_water() * state_n_plus.get_ro_water() + left_cell.get_cell_state_n_plus().get_s_water() * left_cell.get_cell_state_n_plus().get_ro_water())\
+                    / (state_n_plus.get_s_water() + left_cell.get_cell_state_n_plus().get_s_water())
+        else:
+            gamma_water = 0.0
+
+        if Layer.s_oil_init != 0.0:
+            gamma_oil = (
+                      state_n_plus.get_s_oil() * state_n_plus.get_ro_oil() + left_cell.get_cell_state_n_plus().get_s_oil() * left_cell.get_cell_state_n_plus().get_ro_oil()) \
+                      / (state_n_plus.get_s_oil() + left_cell.get_cell_state_n_plus().get_s_oil())
+        else:
+            gamma_oil = 0.0
+
+        gravitation_water = (left_cell.z_coordinate - right_cell.z_coordinate) * gamma_water * Layer.g
+        gravitation_oil = (left_cell.z_coordinate - right_cell.z_coordinate) * gamma_oil * Layer.g
         r_ost = -A * flow.get_water_flow() * (
             right_cell.get_cell_state_n_plus().get_pressure_cap() - left_cell.get_cell_state_n_plus().get_pressure_cap())
-        self.solver_slau.add_nevyaz(right_cell.get_eq_index(), -r_ost - g * (pressure_left - pressure_right))
+        self.solver_slau.add_nevyaz(right_cell.get_eq_index(), -r_ost - g * (pressure_left - pressure_right) + flow.get_oil_flow() * gravitation_oil + A * flow.get_water_flow() * gravitation_water)
         return g
 
     def count_f(self, flow):
@@ -271,13 +286,26 @@ class ThreeDimOilWaterImpes:
         A = (state_n_plus.get_fi() * state_n_plus.get_ro_oil()) / (
             state_n_plus.get_fi() * state_n_plus.get_ro_water() - state_n.get_s_water() * state_n.get_fi() * state_n_plus.get_ro_water() * p_cap_der)
 
-
         f = A * flow.get_water_flow() + flow.get_oil_flow()
+        if Layer.s_water_init != 0.0:
+            gamma_water = (state_n_plus.get_s_water() * state_n_plus.get_ro_water() + right_cell.get_cell_state_n_plus().get_s_water() * right_cell.get_cell_state_n_plus().get_ro_water()) \
+                / (state_n_plus.get_s_water() + right_cell.get_cell_state_n_plus().get_s_water())
+        else:
+            gamma_water = 0.0
+
+        if Layer.s_oil_init != 0.0:
+            gamma_oil = (state_n_plus.get_s_oil() * state_n_plus.get_ro_oil() + right_cell.get_cell_state_n_plus().get_s_oil() * right_cell.get_cell_state_n_plus().get_ro_oil()) \
+                    / (state_n_plus.get_s_oil() + right_cell.get_cell_state_n_plus().get_s_oil())
+        else:
+            gamma_oil = 0.0
+
+        gravitation_water = (left_cell.z_coordinate - right_cell.z_coordinate) * gamma_water * Layer.g
+        gravitation_oil = (left_cell.z_coordinate - right_cell.z_coordinate) * gamma_oil * Layer.g
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         r_ost = -A * flow.get_water_flow() * (
             left_cell.get_cell_state_n_plus().get_pressure_cap() - right_cell.get_cell_state_n_plus().get_pressure_cap())
-        self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost - f * (pressure_right - pressure_left))
+        self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost - f * (pressure_right - pressure_left) + flow.get_oil_flow() * gravitation_oil + A * flow.get_water_flow() * gravitation_water)
         return f
 
     def generate_matrix(self, cell_container):
@@ -359,8 +387,6 @@ class ThreeDimOilWaterImpes:
                 for j in range(Layer.N_y):
                     cell = cell_container.get_cell(k, i, j)
                     state_n_plus = cell.get_cell_state_n_plus()
-                    a = state_n_plus.get_pressure_oil() + delta_k[eq_index]
-                    b = state_n_plus.get_pressure_oil() - state_n_plus.get_pressure_cap()
                     state_n_plus.set_pressure_oil(state_n_plus.get_pressure_oil() + delta_k[eq_index])
                     state_n_plus.set_pressure_water(state_n_plus.get_pressure_oil() - state_n_plus.get_pressure_cap())
                     eq_index += 1
@@ -379,6 +405,12 @@ class ThreeDimOilWaterImpes:
                            + flow_minus.get_water_flow() * (left_state_minus.get_pressure_oil() - right_state_minus.get_pressure_oil())\
                            + flow_minus.get_water_flow() * (left_state_minus.get_pressure_cap() - right_state_minus.get_pressure_cap())
 
+            # TODO: заменить расчет плотности в gamma если нужно
+            gamma = left_state_plus.get_ro_water() * Layer.g
+            gamma_part = flow_plus.get_water_flow() * gamma * (flow_plus.get_right_cell().z_coordinate - flow_plus.get_left_cell().z_coordinate)\
+                         + flow_minus.get_water_flow() * gamma * (flow_minus.get_left_cell().z_coordinate - flow_minus.get_right_cell().z_coordinate)
+
+            coeff_2_part -= gamma_part
             return coeff_2_part
 
         for k in range(1, Layer.N_z - 1):
