@@ -6,7 +6,7 @@ from Cell import Cell
 
 class CellContainer:
     def __init__(self):
-        self.container = np.zeros((Layer.N_z, Layer.N_x, Layer.N_z), dtype=Cell)  # (z, x, y) x = rows, y - columns
+        self.container = np.zeros((Layer.N_z, Layer.N_x, Layer.N_y), dtype=Cell)  # (z, x, y) x = rows, y - columns
         eq_index = 0
         for k in range(Layer.N_z):
             for i in range(Layer.N_x):

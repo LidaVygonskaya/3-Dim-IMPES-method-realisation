@@ -1,7 +1,7 @@
 class Oil:
     atm = 101325.0
     P_02 = 80 * atm
-    ro_oil_0 = 1000.0
+    ro_oil_0 = 900.0
     c_f_oil = (10.0 ** (-4)) / atm
 
     def __init__(self):

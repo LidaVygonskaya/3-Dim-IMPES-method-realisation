@@ -13,7 +13,7 @@ class Cell:
         self.cell_states = [CellState(), CellState()]  # n, n + 1 layers
         self.eq_index = eq_index
         self.has_well = has_well
-        self.well = Well(self, well_index) if has_well else None
+        self.well = Well(self, well_index, horizontal=Layer.horizontal) if has_well else None
         self.z_coordinate = z_coordinate
 
         self.flow_array_x = np.array([Flow() for _ in range(Layer.components_count)], dtype=Flow)  # Поток минус(для oil и water) Поток плюс(для oil и water)

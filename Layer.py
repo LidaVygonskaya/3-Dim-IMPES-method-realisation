@@ -1,5 +1,3 @@
-import numpy as np
-
 from Oil import Oil
 from Water import Water
 
@@ -13,25 +11,25 @@ class Layer:
     dim = 3  # Размерность пространства
 
     # Количество ячеек
-    N_x = 20
-    N_y = 20
-    N_z = 20
+    N_x = 200
+    N_y = 200
+    N_z = 1
 
     # Координаты и шаги
     # TODO: По разной координатной оси разный шаг по пространству
     # TODO: Сейчас пока что у тебя один шаг. Надо будет все поменять
     x_0 = 0.0
-    x_N = 200.0
-    y_N = 200.0
+    x_N = 500.0
+    y_N = 500.0
     z_N = 20.0
     h = (x_N - x_0) / (N_x - 1)
     h_x = (x_N - x_0) / (N_x - 1)
     h_y = (y_N - x_0) / (N_y - 1)
-    h_z = (z_N - x_0) / (N_z - 1)
+    h_z = (z_N - x_0)# / (N_z - 1)
     h_array = [h_x, h_y, h_z]
     V_ijk = h_x * h_y * h_z
 
-    s_water_init = 0.5  # Начальная насыщенность воды
+    s_water_init = 0.1  # Начальная насыщенность воды
     s_oil_init = 1.0 - s_water_init  # Начальная насыщенность нефти. Вычисляем через воду конечно, но пусть будет на всякий
 
     pressure_oil_init = 80 * atm  # Начальное давление нефти
@@ -43,11 +41,11 @@ class Layer:
     P_01 = Water.P_01
     P_02 = Oil.P_02
 
-    k = (9.868233 * (10 ** (-13))) * 10 ** (-3)
+    k = (9.868233 * (10 ** (-13))) * 10 ** (-2)
     # TODO: Создать коэффициенты проницаемости
     k_x = k
     k_y = k
-    k_z = k
+    k_z = k / 10
     k_array = [k_x, k_y, k_z]
     mu_oil = 10.0 * (10.0 ** (-3))
     mu_water = 10.0 * (10.0 ** (-3))
@@ -65,13 +63,11 @@ class Layer:
     s_well_water = 1.0
     s_well_oil = 1.0 - s_well_water
 
-    # TODO: реализовать скважину в несколько ячеек
-    well_index_x = 2
-    well_index_y = 2
-    well_index_z = 2
-    wells = [(10, 10, 10)]  # [(2, 2, 2)]
+    # k, i, j
+    wells = [(0, 100, 100)]
 
     productive = False
+    horizontal = False
     # ================================================================
     @staticmethod
     def get_h(direction):

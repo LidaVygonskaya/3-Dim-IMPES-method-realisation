@@ -8,7 +8,7 @@ from Enums import Components, Boundary
 
 
 class Well:
-    def __init__(self, cell, well_index):
+    def __init__(self, cell, well_index, horizontal):
         self.p_well = Layer.P_well_extractive if Layer.productive else Layer.P_well_delivery
         self.r_well = Layer.r_well
 
@@ -16,7 +16,7 @@ class Well:
         self.s_well_oil = cell.get_cell_state_n_plus().get_s_oil() if Layer.productive else Layer.s_well_oil
 
         self.well_index_oil_water = np.zeros(Layer.components_count)
-        self.count_well_index(cell, well_index)
+        self.count_well_index(cell, well_index, horizontal)
 
     def count_well_index(self, cell, well_index,  horizontal=False):
         k = self.count_k(horizontal)
@@ -26,8 +26,8 @@ class Well:
         delta_dim = Layer.h_y if horizontal else Layer.h_z
         well_oil = 2.0 * math.pi * k * delta_dim * k_r_oil / (math.log(re / self.r_well) * Layer.mu_oil)
         well_water = 2.0 * math.pi * k * delta_dim * k_r_water / (math.log(re / self.r_well) * Layer.mu_water)
-        ro_oil = Oil.count_ro(cell.get_cell_state_n_plus().get_pressure_water()) if Layer.productive else Oil.count_ro(self.p_well)
-        ro_water = cell.get_cell_state_n_plus().get_ro_water()
+        ro_oil = Oil.count_ro(cell.get_cell_state_n_plus().get_pressure_oil()) if Layer.productive else Oil.count_ro(self.p_well)
+        ro_water = Water.count_ro(cell.get_cell_state_n_plus().get_pressure_oil()) if Layer.productive else Oil.count_ro(self.p_well)
         self.well_index_oil_water[Components.OIL.value] = well_oil * ro_oil / Layer.V_ijk
         self.well_index_oil_water[Components.WATER.value] = well_water * ro_water / Layer.V_ijk
 
@@ -44,8 +44,8 @@ class Well:
 
     def count_re(self, well_index, horizontal=False):
         if horizontal:
-            nominator = math.sqrt(Layer.k_y / Layer.k_x) * (Layer.h_x) ** 2 + math.sqrt(Layer.k_x / Layer.k_y) * (Layer.h_y) ** 2
-            denominator = math.pow(Layer.k_y / Layer.k_x, 0.25) + math.pow(Layer.k_x / Layer.k_y, 0.25)
+            nominator = math.sqrt(Layer.k_y / Layer.k_z) * (Layer.h_z) ** 2 + math.sqrt(Layer.k_z / Layer.k_y) * (Layer.h_y) ** 2
+            denominator = math.pow(Layer.k_y / Layer.k_z, 0.25) + math.pow(Layer.k_z / Layer.k_y, 0.25)
         else:
             nominator = math.sqrt(Layer.k_y / Layer.k_x) * (Layer.h_x) ** 2 + math.sqrt(Layer.k_x / Layer.k_y) * (Layer.h_y) ** 2
             denominator = math.pow(Layer.k_y / Layer.k_x, 0.25) + math.pow(Layer.k_x / Layer.k_y, 0.25)

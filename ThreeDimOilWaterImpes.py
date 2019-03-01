@@ -299,8 +299,8 @@ class ThreeDimOilWaterImpes:
         else:
             gamma_oil = 0.0
 
-        gravitation_water = (left_cell.z_coordinate - right_cell.z_coordinate) * gamma_water * Layer.g
-        gravitation_oil = (left_cell.z_coordinate - right_cell.z_coordinate) * gamma_oil * Layer.g
+        gravitation_water = (right_cell.z_coordinate - left_cell.z_coordinate) * gamma_water * Layer.g
+        gravitation_oil = (right_cell.z_coordinate - left_cell.z_coordinate) * gamma_oil * Layer.g
         pressure_left = left_cell.get_cell_state_n_plus().get_pressure_oil()
         pressure_right = right_cell.get_cell_state_n_plus().get_pressure_oil()
         r_ost = -A * flow.get_water_flow() * (
@@ -374,8 +374,8 @@ class ThreeDimOilWaterImpes:
         shifts = [0, -1, 1, -shift_Nx, shift_Nx, -shift_Nxy, shift_Nxy]
         self.solver_slau.coefficient_matrix = diags(diagonals, shifts)
         # Для смотрения
-        smotrenie = self.solver_slau.coefficient_matrix.toarray()
-        print("be")
+        #smotrenie = self.solver_slau.coefficient_matrix.toarray()
+        #print("be")
 
     def solve_slau(self):
        self.solver_slau.solve_slau()

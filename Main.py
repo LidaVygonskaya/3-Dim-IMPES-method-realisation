@@ -11,15 +11,6 @@ impes = ThreeDimOilWaterImpes(solver_slau)
 cell_container = CellContainer()  # Проверь на счет eq_index. Внутри реализации написано чо каво
 cell_container.initialize_cells()
 
-"""
-cell = cell_container.get_cell(2, 2, 2)
-cell.get_cell_state_n().set_pressure_water(200 * 101325)
-cell.get_cell_state_n_plus().set_pressure_water(200 * 101325 + 1000)
-
-cell.get_cell_state_n().set_pressure_oil(200 * 101325)
-cell.get_cell_state_n_plus().set_pressure_oil(200 * 101325 + 1000)
-"""
-
 Flow.initialize_flow(cell_container)
 
 time = impes.tau  # Сразу обозначим это как первый шаг по времени, потому что нулевой у нас есть
@@ -67,9 +58,10 @@ while time < impes.time_max:
         impes.update_pressure(cell_container, delta_k)
 
     if counter % 10 == 0:
-        f = open(f'data_{counter}.txt', 'w')
-        f_deb = open(f'debit.txt', 'w')
-        t = PrettyTable(['Pressure_OIL, atm', 'Pressure_WATER, atm', 'Pressure_CAP, atm', 'Saturation_OIL', 'Saturation_WATER'])
+        folder = 'count_grid_200_1_block'
+        f = open(f'{folder}/data_{counter}.txt', 'w')
+        f_deb = open(f'{folder}/debit.txt', 'w')
+        t = PrettyTable(['X_Coordinate', 'Y_Coordinate', 'Z_Coordinate', 'Pressure_OIL, atm', 'Pressure_WATER, atm', 'Pressure_CAP, atm', 'Saturation_OIL', 'Saturation_WATER', 'Is_Well'])
         for k in range(Layer.N_z):
             for i in range(Layer.N_x):
                 for j in range(Layer.N_x):
@@ -80,7 +72,7 @@ while time < impes.time_max:
                     p_cap = cell_state.get_pressure_cap()
                     s_oil = cell_state.get_s_oil()
                     s_water = cell_state.get_s_water()
-                    t.add_row([p_oil / Layer.atm, p_water / Layer.atm, p_cap / Layer.atm, s_oil, s_water])
+                    t.add_row([i * Layer.h_x, j * Layer.h_y, k * Layer.h_z, p_oil / Layer.atm, p_water / Layer.atm, p_cap / Layer.atm, s_oil, s_water, int(cell.has_well)])
 
                     if cell.has_well:
                         well = cell.well
