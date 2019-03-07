@@ -34,31 +34,17 @@ while time < impes.time_max:
 
     while impes.check_norm(delta_k):
         impes.solver_slau.set_zero()
+        #impes.main_cycle(cell_container)
         impes.recount_properties(cell_container)
         impes.count_cells_flows(cell_container)
         impes.generate_matrix(cell_container)
         impes.solve_slau()
         delta_k = impes.solver_slau.get_result()
         impes.solver_slau.clear_result()
-        """
-        if impes.check_pressure_convergence(cell_container, delta_k):
-            impes.tau = impes.tau / 2.0
-
-            for k in range(Layer.N_z):
-                for i in range(Layer.N_x):
-                    for j in range(Layer.N_y):
-                        cell = cell_container.get_cell(k, i, j)
-                        cell.get_cell_state_n_plus().set_equals_to(cell.get_cell_state_n())
-                        cell.get_cell_state_n_plus().set_pressure_water(cell.get_cell_state_n().get_pressure_water() + 1000.0)
-                        cell.get_cell_state_n_plus().set_pressure_oil(cell.get_cell_state_n().get_pressure_oil() + 1000.0)
-
-            print("be")
-        else:
-        """
         impes.update_pressure(cell_container, delta_k)
 
     if counter % 10 == 0:
-        folder = 'count_grid_200_1_block'
+        folder = Layer.folder
         f = open(f'{folder}/data_{counter}.txt', 'w')
         f_deb = open(f'{folder}/debit.txt', 'w')
         t = PrettyTable(['X_Coordinate', 'Y_Coordinate', 'Z_Coordinate', 'Pressure_OIL, atm', 'Pressure_WATER, atm', 'Pressure_CAP, atm', 'Saturation_OIL', 'Saturation_WATER', 'Is_Well'])

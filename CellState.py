@@ -1,6 +1,5 @@
 import numpy as np
 
-from Flow import Flow
 from Layer import Layer
 from Enums import Components
 
@@ -13,7 +12,7 @@ class CellState:
         self.s_oil_water = np.zeros(Layer.components_count)  # [S_oil, S_water]
         self.ro_oil_water = np.zeros(Layer.components_count)  # [ro_oil, ro_water]
         self.k_r_oil_water = np.zeros(Layer.components_count)  # [k_r_oil, k_r_water]
-        self.fi = 0.0
+        self.fi = Layer.fi_0
 
     #Getters
     def get_pressure_oil(self):

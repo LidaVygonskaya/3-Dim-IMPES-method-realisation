@@ -6,6 +6,7 @@ class Layer:
     atm = 101325.0
     g = 9.80665
     p_cap_filename = 'Pcap(Sw).txt'
+    folder = 'count_grid_200_1_block_horizontal'
 
     components_count = 2  # Количество компонент
     dim = 3  # Размерность пространства
@@ -64,10 +65,10 @@ class Layer:
     s_well_oil = 1.0 - s_well_water
 
     # k, i, j
-    wells = [(0, 100, 100)]
+    wells = [(0, k, 100) for k in range(45, 56)]
 
     productive = False
-    horizontal = False
+    horizontal = True
     # ================================================================
     @staticmethod
     def get_h(direction):

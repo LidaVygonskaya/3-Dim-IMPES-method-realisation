@@ -1,5 +1,4 @@
 import numpy as np
-import math
 from scipy.sparse import diags
 
 from Layer import Layer
@@ -14,6 +13,32 @@ class ThreeDimOilWaterImpes:
         self.delta_0 = 1000  # Начальное приближение, на которое отличаются давления
         self.delta_max = 10 ** (-3)
         self.solver_slau = solver_slau
+        matrix_size = Layer.N_x * Layer.N_y * Layer.N_z
+        self.b = np.empty((0, matrix_size))  # Плюсовый
+        self.c = np.empty((0, matrix_size))  # Минусовый
+        self.d = np.empty((0, matrix_size))  # Плюсовый
+        self.e = np.empty((0, matrix_size))  # Минусовый
+        self.g = np.empty((0, matrix_size))  # Плюсовый
+        self.f = np.empty((0, matrix_size))  # Минусовый
+        self.well_addition_oil = np.empty((0, matrix_size))
+        self.well_addition_water = np.empty((0, matrix_size))
+        self.coeff_a_d = np.empty((0, matrix_size))
+        self.coeff_a_d_nevyaz = np.empty((0, matrix_size))
+        self.coeff_well_nevyaz = np.empty((0, matrix_size))
+
+    def set_zero_coeffs(self):
+        matrix_size = Layer.N_x * Layer.N_y * Layer.N_z
+        self.b = np.empty((0, matrix_size))  # Плюсовый
+        self.c = np.empty((0, matrix_size))  # Минусовый
+        self.d = np.empty((0, matrix_size))  # Плюсовый
+        self.e = np.empty((0, matrix_size))  # Минусовый
+        self.g = np.empty((0, matrix_size))  # Плюсовый
+        self.f = np.empty((0, matrix_size))  # Минусовый
+        self.well_addition_oil = np.empty((0, matrix_size))
+        self.well_addition_water = np.empty((0, matrix_size))
+        self.coeff_a_d = np.empty((0, matrix_size))
+        self.coeff_a_d_nevyaz = np.empty((0, matrix_size))
+        self.coeff_well_nevyaz = np.empty((0, matrix_size))
 
     def generate_delta_k(self):
         delta_k = self.delta_0 * np.ones(Layer.N_z * Layer.N_x * Layer.N_z)
@@ -29,6 +54,21 @@ class ThreeDimOilWaterImpes:
         if norm <= self.delta_max:
             isMore = False
         return isMore
+
+    @staticmethod
+    def recount_property(cell_container, k, i, j):
+        cell = cell_container.get_cell(k, i, j)
+        cell_state_n_plus = cell.get_cell_state_n_plus()
+        for component in Layer.components:
+            component_index = Layer.components.index(component)
+            ro = component.count_ro(cell_state_n_plus.get_components_pressure()[component_index])
+            k_r = component.count_k_r(cell_state_n_plus.get_components_saturation()[component_index])
+            cell_state_n_plus.set_ro(ro, component_index)
+            cell_state_n_plus.set_k_r(k_r, component_index)
+        fi = Layer.count_fi(cell_state_n_plus.get_pressure_oil())
+        cell_state_n_plus.set_fi(fi)
+        if cell.has_well:
+            cell.well.count_well_index(cell, (k, i, j))
 
     @staticmethod
     def recount_properties(cell_container):
@@ -55,6 +95,23 @@ class ThreeDimOilWaterImpes:
                 for j in range(Layer.N_z):
                     flow = flows[k, i, j]
                     flow.count_flow()
+
+    @staticmethod
+    def count_cell_flow(cell_container, k, i, j):
+        cell = cell_container.get_cell(k, i, j)
+        flow_array_x = cell.get_flow('x')
+        flow_array_y = cell.get_flow('y')
+        flow_array_z = cell.get_flow('z')
+
+        for flow in flow_array_x:
+            flow.count_flow('x')
+
+        for flow in flow_array_y:
+            flow.count_flow('y')
+
+        for flow in flow_array_z:
+            flow.count_flow('z')
+
     @staticmethod
     def count_cells_flows(cell_container):
         for k in range(Layer.N_z):
@@ -308,6 +365,64 @@ class ThreeDimOilWaterImpes:
         self.solver_slau.add_nevyaz(left_cell.get_eq_index(), -r_ost - f * (pressure_right - pressure_left) + flow.get_oil_flow() * gravitation_oil + A * flow.get_water_flow() * gravitation_water)
         return f
 
+    def count_add_coefficients(self, cell_container, k, i, j):
+        cell = cell_container.get_cell(k, i, j)
+        pressure_n = cell.get_cell_state_n().get_pressure_oil()
+        pressure_n_plus = cell.get_cell_state_n_plus().get_pressure_oil()
+        pressure_cap_n = cell.get_cell_state_n().get_pressure_cap()
+
+        self.b = np.append(self.b, self.count_b(
+            cell.get_flow_coefficient('x', FlowComponents.plus.value)))  # Откусываем большой сдвиг с конца
+        self.c = np.append(self.c, self.count_c(
+            cell.get_flow_coefficient('x', FlowComponents.minus.value)))  # Откусываем большой сдвиг с начала
+        self.d = np.append(self.d, self.count_d(
+            cell.get_flow_coefficient('y', FlowComponents.plus.value)))  # Откусываем малый сдвиг с конца
+        self.e = np.append(self.e, self.count_e(
+            cell.get_flow_coefficient('y', FlowComponents.minus.value)))  # Откусываем малый сдвиг с начала
+        self.g = np.append(self.g, self.count_g(
+            cell.get_flow_coefficient('z', FlowComponents.plus.value)))  # Остается неизменным сдвиг + 1
+        self.f = np.append(self.f, self.count_f(
+            cell.get_flow_coefficient('z', FlowComponents.minus.value)))  # Остается неизменным сдвиг -1
+
+        # Добавляем в середину
+        well_oil = self.count_well_addition(cell)
+        well_water = self.count_well_addition(cell, water=True)
+        self.well_addition_oil = np.append(self.well_addition_oil, well_oil)  # Water False
+        self.well_addition_water = np.append(self.well_addition_water, well_water)
+
+        p_well = cell.well.p_well if cell.has_well else 0
+        well_nevyaz = well_oil * (pressure_n_plus - p_well) + well_water * (pressure_n_plus - pressure_cap_n - p_well)
+        self.coeff_well_nevyaz = np.append(self.coeff_well_nevyaz, well_nevyaz)
+
+        a_d = self.count_a(cell)
+        self.coeff_a_d = np.append(self.coeff_a_d, a_d)
+        self.coeff_a_d_nevyaz = np.append(self.coeff_a_d_nevyaz, a_d * (pressure_n_plus - pressure_n))
+
+    def end_coeff(self):
+        self.solver_slau.add_vector_to_nevyaz(np.transpose([self.coeff_a_d_nevyaz]))
+        self.solver_slau.add_vector_to_nevyaz(np.transpose([self.coeff_well_nevyaz]))
+
+        self.a = - self.b - self.c - self.d - self.e - self.f - self.g - self.coeff_a_d - self.well_addition_oil - self.well_addition_water
+
+        shift_Nx = self.solver_slau.get_shift_N_x()
+        shift_Nxy = self.solver_slau.get_shift_N_xy()
+
+        self.f = self.f[(shift_Nxy):]
+        self.g = self.g[:-(shift_Nxy)]
+
+        self.e = self.e[1:]
+        self.d = self.d[:-1]
+
+        self.c = self.c[(shift_Nx):]
+        self.b = self.b[:(-shift_Nx)]
+
+        diagonals = [self.a, self.e, self.d, self.c, self.b, self.f, self.g]
+        shifts = [0, -1, 1, -shift_Nx, shift_Nx, -shift_Nxy, shift_Nxy]
+        self.solver_slau.coefficient_matrix = diags(diagonals, shifts)
+        # Для смотрения
+        # smotrenie = self.solver_slau.coefficient_matrix.toarray()
+        # print("be")
+
     def generate_matrix(self, cell_container):
         matrix_size = Layer.N_x * Layer.N_y * Layer.N_z
         b = np.empty((0, matrix_size))  # Плюсовый
@@ -481,3 +596,13 @@ class ThreeDimOilWaterImpes:
         for well_index in Layer.wells:
             cell = cell_container.get_cell(well_index[0], well_index[1], well_index[2])
             pressure = cell.get_cell_state_n_plus().get_pressure_water()
+
+    def main_cycle(self, cell_container):
+        #self.set_zero_coeffs()
+        for k in range(Layer.N_z):
+            for i in range(Layer.N_x):
+                for j in range(Layer.N_y):
+                    self.recount_property(cell_container, k, i, j)
+                    self.count_cell_flow(cell_container, k, i, j)
+                    #self.count_add_coefficients(cell_container, k, i, j)
+        #self.end_coeff()
