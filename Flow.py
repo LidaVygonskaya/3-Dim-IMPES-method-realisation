@@ -109,7 +109,7 @@ class Flow:
             cell_state_n_plus = cell.get_cell_state_n_plus()
             if self.left_cell is not None or self.right_cell is not None:
                 t_component = (cell.get_k(direction) * cell_state_n_plus.get_components_k_r()[component_index]
-                               / cell.get_mu_oil_water()[component_index])\
+                               / cell.get_mu_oil_water()[component_index]) * Layer.V_ijk\
                               * (1 / Layer.get_h(direction)) ** 2.0 * cell_state_n_plus.get_components_ro()[component_index]
             self.t_oil_water[component_index] = t_component
 

@@ -43,7 +43,7 @@ while time < impes.time_max:
         impes.solver_slau.clear_result()
         impes.update_pressure(cell_container, delta_k)
 
-    if counter % 10 == 0:
+    if counter % 1 == 0:
         folder = Layer.folder
         f = open(f'{folder}/data_{counter}.txt', 'w')
         f_deb = open(f'{folder}/debit.txt', 'w')
@@ -62,8 +62,11 @@ while time < impes.time_max:
 
                     if cell.has_well:
                         well = cell.well
-                        q_oil = well.get_oil_well_index() * (p_oil - well.p_well)
-                        q_water = well.get_water_well_index() * (p_water - well.p_well)
+
+                        p_average = p_oil - s_water*p_cap
+
+                        q_oil = well.get_oil_well_index() * (p_average - well.p_well)
+                        q_water = well.get_water_well_index() * (p_average - well.p_well)
                         q_vol_oil = q_oil / cell_state.get_ro_oil()
                         q_vol_water = q_water / cell_state.get_ro_water()
                         cur_time = time / impes.tau_default

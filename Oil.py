@@ -5,7 +5,7 @@ class Oil:
     c_f_oil = (10.0 ** (-4)) / atm
 
     def __init__(self):
-        self.ro_oil_0 = 1000.0
+        self.ro_oil_0 = 900.0
         self.c_f_oil = (10.0 ** (-4)) / Oil.atm
 
     @staticmethod

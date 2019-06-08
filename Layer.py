@@ -5,32 +5,32 @@ from Water import Water
 class Layer:
     atm = 101325.0
     g = 9.80665
-    p_cap_filename = 'Pcap(Sw).txt'
-    folder = 'count_grid_200_1_block_horizontal'
+    p_cap_filename = 'Pcap(Sw)_linear.txt'
+    folder = '2D_A_2'
 
     components_count = 2  # Количество компонент
     dim = 3  # Размерность пространства
 
     # Количество ячеек
-    N_x = 200
-    N_y = 200
+    N_x = 21
+    N_y = 21
     N_z = 1
 
     # Координаты и шаги
     # TODO: По разной координатной оси разный шаг по пространству
     # TODO: Сейчас пока что у тебя один шаг. Надо будет все поменять
     x_0 = 0.0
-    x_N = 500.0
-    y_N = 500.0
-    z_N = 20.0
+    x_N = 200.0
+    y_N = 200.0
+    z_N = 1.0
     h = (x_N - x_0) / (N_x - 1)
     h_x = (x_N - x_0) / (N_x - 1)
     h_y = (y_N - x_0) / (N_y - 1)
-    h_z = (z_N - x_0)# / (N_z - 1)
+    h_z = (z_N - x_0) #/ (N_z - 1)
     h_array = [h_x, h_y, h_z]
     V_ijk = h_x * h_y * h_z
 
-    s_water_init = 0.1  # Начальная насыщенность воды
+    s_water_init = 0.5  # Начальная насыщенность воды
     s_oil_init = 1.0 - s_water_init  # Начальная насыщенность нефти. Вычисляем через воду конечно, но пусть будет на всякий
 
     pressure_oil_init = 80 * atm  # Начальное давление нефти
@@ -46,7 +46,7 @@ class Layer:
     # TODO: Создать коэффициенты проницаемости
     k_x = k
     k_y = k
-    k_z = k / 10
+    k_z = k
     k_array = [k_x, k_y, k_z]
     mu_oil = 10.0 * (10.0 ** (-3))
     mu_water = 10.0 * (10.0 ** (-3))
@@ -65,10 +65,11 @@ class Layer:
     s_well_oil = 1.0 - s_well_water
 
     # k, i, j
-    wells = [(0, k, 100) for k in range(45, 56)]
+    #wells = [(0, k, 100) for k in range(45, 56)]
+    wells = [(0, 11, 11)]
 
-    productive = False
-    horizontal = True
+    productive = True
+    horizontal = False
     # ================================================================
     @staticmethod
     def get_h(direction):

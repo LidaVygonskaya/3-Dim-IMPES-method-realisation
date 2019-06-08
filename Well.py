@@ -12,8 +12,8 @@ class Well:
         self.p_well = Layer.P_well_extractive if Layer.productive else Layer.P_well_delivery
         self.r_well = Layer.r_well
 
-        self.s_well_water = cell.get_cell_state_n_plus().get_s_water() if Layer.productive else Layer.s_well_water
-        self.s_well_oil = cell.get_cell_state_n_plus().get_s_oil() if Layer.productive else Layer.s_well_oil
+        self.s_well_water = cell.get_cell_state_n().get_s_water() if Layer.productive else Layer.s_well_water
+        self.s_well_oil = cell.get_cell_state_n().get_s_oil() if Layer.productive else Layer.s_well_oil
 
         self.well_index_oil_water = np.zeros(Layer.components_count)
         self.count_well_index(cell, well_index, horizontal)
@@ -21,15 +21,17 @@ class Well:
     def count_well_index(self, cell, well_index,  horizontal=False):
         k = self.count_k(horizontal)
         re = self.count_re(well_index, horizontal=horizontal)
-        k_r_oil = Oil.count_k_r(self.s_well_oil)
-        k_r_water = Water.count_k_r(self.s_well_water)
+        s_well_oil = cell.get_cell_state_n().get_s_oil() if Layer.productive else Layer.s_well_oil
+        s_well_water = cell.get_cell_state_n().get_s_water() if Layer.productive else Layer.s_well_water
+        k_r_oil = Oil.count_k_r(s_well_oil)
+        k_r_water = Water.count_k_r(s_well_water)
         delta_dim = Layer.h_y if horizontal else Layer.h_z
         well_oil = 2.0 * math.pi * k * delta_dim * k_r_oil / (math.log(re / self.r_well) * Layer.mu_oil)
         well_water = 2.0 * math.pi * k * delta_dim * k_r_water / (math.log(re / self.r_well) * Layer.mu_water)
         ro_oil = Oil.count_ro(cell.get_cell_state_n_plus().get_pressure_oil()) if Layer.productive else Oil.count_ro(self.p_well)
         ro_water = Water.count_ro(cell.get_cell_state_n_plus().get_pressure_oil()) if Layer.productive else Oil.count_ro(self.p_well)
-        self.well_index_oil_water[Components.OIL.value] = well_oil * ro_oil / Layer.V_ijk
-        self.well_index_oil_water[Components.WATER.value] = well_water * ro_water / Layer.V_ijk
+        self.well_index_oil_water[Components.OIL.value] = well_oil * ro_oil #/  Layer.V_ijk
+        self.well_index_oil_water[Components.WATER.value] = well_water * ro_water #/ Layer.V_ijk
 
     def get_water_well_index(self):
         return self.well_index_oil_water[Components.WATER.value]
